@@ -418,39 +418,24 @@ void check_cg_borders(void)
 }
 
 
-void help_on_coherent_graph(void)
+int help_on_coherent_graph(void)
 {
-    int msg_no;
+    int msg_no = 68;
     int event_no;
-    msg_no=68;
-    for(event_no=0; event_no<MAX_CGBUTT; event_no++) {
-        if( cgbutt[event_no].x1 <= mouse_x &&
-                cgbutt[event_no].x2 >= mouse_x &&
-                cgbutt[event_no].y1 <= mouse_y &&
-                cgbutt[event_no].y2 >= mouse_y) {
+    for (event_no = 0; event_no < MAX_CGBUTT; ++ event_no)
+        if (cgbutt[event_no].x1 <= mouse_x && cgbutt[event_no].x2 >= mouse_x &&
+            cgbutt[event_no].y1 <= mouse_y && cgbutt[event_no].y2 >= mouse_y) {
             switch (event_no) {
             case CG_TOP:
             case CG_BOTTOM:
             case CG_LEFT:
-            case CG_RIGHT:
-                msg_no=101;
-                break;
-
-            case CG_OSCILLOSCOPE:
-                msg_no=69;
-                break;
-
-            case CG_METER_GRAPH:
-                msg_no=99;
-                break;
+            case CG_RIGHT:          return 101;
+            case CG_OSCILLOSCOPE:   return 69;
+            case CG_METER_GRAPH:    return 99;
             }
         }
-    }
-    help_message(msg_no);
+    return msg_no;
 }
-
-
-
 
 void mouse_continue_coh_graph(void)
 {

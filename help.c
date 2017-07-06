@@ -340,6 +340,28 @@ void newcomer_escpress(int clear)
     lir_refresh_screen();
 }
 
+int help_screen_object_below_mouse(void)
+{
+    int i;
+    for (i = 0; i < no_of_scro; ++ i)
+        if (scro[i].x1 <= mouse_x && scro[i].x2 >= mouse_x && scro[i].y1 <= mouse_y && scro[i].y2 >= mouse_y) {
+            switch (scro[i].no) {
+            case WIDE_GRAPH:        return help_on_wide_graph();
+            case HIRES_GRAPH:       return help_on_hires_graph();
+            case AFC_GRAPH:         return help_on_afc_graph();
+            case BASEBAND_GRAPH:    return help_on_baseband_graph();
+            case POL_GRAPH:         return help_on_pol_graph();
+            case COH_GRAPH:         return help_on_coherent_graph();
+            case EME_GRAPH:         return help_on_eme_graph();
+            case FREQ_GRAPH:        return help_on_freq_graph();
+            case METER_GRAPH:       return help_on_meter_graph();
+            case TRANSMIT_GRAPH:    return help_on_tx_graph();
+            }
+        }
+    // nothing selected
+    return -1;
+}
+
 void help_screen_objects(void)
 {
     int i, j;
@@ -360,55 +382,15 @@ void help_screen_objects(void)
     mouse_inhibit=TRUE;
     init_screensave();
     if(kill_all_flag)return;
-    for(i=0; i<no_of_scro; i++) {
-        if( scro[i].x1 <= mouse_x &&
-                scro[i].x2 >= mouse_x &&
-                scro[i].y1 <= mouse_y &&
-                scro[i].y2 >= mouse_y) {
-            switch (scro[i].no) {
-            case WIDE_GRAPH:
-                help_on_wide_graph();
-                break;
-
-            case HIRES_GRAPH:
-                help_on_hires_graph();
-                break;
-
-            case AFC_GRAPH:
-                help_on_afc_graph();
-                break;
-
-            case BASEBAND_GRAPH:
-                help_on_baseband_graph();
-                break;
-
-            case POL_GRAPH:
-                help_on_pol_graph();
-                break;
-
-            case COH_GRAPH:
-                help_on_coherent_graph();
-                break;
-
-            case EME_GRAPH:
-                help_on_eme_graph();
-                break;
-
-            case FREQ_GRAPH:
-                help_on_freq_graph();
-                break;
-
-            case METER_GRAPH:
-                help_on_meter_graph();
-                break;
-
-            case TRANSMIT_GRAPH:
-                help_on_tx_graph();
-                break;
-            }
-        }
+    i = help_screen_object_below_mouse();
+    if (i != -1) {
+        help_message(i);
+        close_screensave();
+        lir_refresh_screen();
+        resume_thread(THREAD_SCREEN);
+        mouse_inhibit=FALSE;
+        return;
     }
-    if(kill_all_flag) return;
     if(lir_inkey != 0) {
         show_scro_color=0;
 repeat:
@@ -716,4 +698,79 @@ ex:
     lir_inkey=0;
     settextcolor(7);
     clear_screen();
+}
+
+void write_from_msg_file2(const char *msg_filename, int x0, int line, int msg_no, 
+                                     int screen_mode, int vernr)
+{
+    char s[512];
+    char chr;
+    int i,j,k;
+    FILE *msg_file=fopen(msg_filename, "r");
+    if(msg_file == NULL) {
+        sprintf(s,"Could not find %s",msg_filename);
+        goto finish_err;
+    }
+    i=fread(&s,1,6,msg_file);
+    if(i!=6) {
+        sprintf(s,"File %s empty",msg_filename);
+        goto finish_err_close;
+    }
+    s[6]=0;   
+    sscanf(s,"%d",&k);
+    if(k != vernr) {
+        sprintf(s,"Error %d. Wrong version number in %s",msg_no, msg_filename);
+        goto finish_err_close;
+    }
+gtnum:;
+    i=fread(&s,1,1,msg_file);
+    if (i==0) {
+        sprintf(s,"Could not find info no %d",msg_no);
+        goto finish_err_close;
+    }
+    if(s[0] != '[')
+        goto gtnum;
+    j=0;
+    while(fread(&s[j],1,1,msg_file)==1 && s[j] != ']')j++;
+    s[j]=0;
+    sscanf(s,"%d",&k);
+    if(k != msg_no)
+        goto gtnum;
+    sprintf(s,"[%d]",msg_no);
+    j=0;
+    while(s[j]!=0)j++;
+    j--;
+gtrow:; 
+    j++;   
+    i=fread(&s[j],1,1,msg_file);
+    if( i==1 && s[j] != 10 && s[j] != '[' && j<255 )
+        goto gtrow;
+    chr=s[j];
+    if(chr== '[' || chr==10)
+        s[j]=0;
+    else
+        s[j+1]=0;
+    lir_text(x0,line,s);
+    line++;
+    if(chr != '[' && i==1) {
+        j=-1;
+        goto gtrow;
+    }
+    goto finish_ok;  
+    finish_err_close:;       
+    finish_err:;       
+      lir_text(x0,line,s);
+    line++;
+    sprintf(s,"Error[%d] No info available in %s",msg_no,msg_filename);
+    lir_text(x0,line,s);
+    finish_ok:;
+    fclose(msg_file);
+    lir_refresh_screen();
+}
+
+void help_bubble(int x, int y, int msg_no)
+{
+    lir_fillbox(x * text_width, y * text_height, screen_width, screen_height - y * text_height, 0);
+    if (msg_no != -1)
+        write_from_msg_file2("help.lir", x, y, msg_no, TRUE, HELP_VERNR);
 }

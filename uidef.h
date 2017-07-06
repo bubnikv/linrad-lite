@@ -400,7 +400,10 @@ void lir_pixwrite(int x, int y, char *s);
 extern bool lir_pixwrite_GDI(int x, int y, char *s);
 #endif
 void help_message(int msg_no);
+void help_bubble(int x, int y, int msg_no);
 void help_screen_objects(void);
+// For the bubble help.
+int  help_screen_object_below_mouse(void);
 void select_pol_default(void);
 void init_spur_elimination(void);
 void cancel_spur_elimination(void);

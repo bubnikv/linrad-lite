@@ -208,100 +208,40 @@ ex2:
     make_hires_valid();
 }
 
-
-
-void help_on_hires_graph(void)
+int help_on_hires_graph(void)
 {
-    int msg_no;
-    int event_no;
-// Set msg to select a frequency in case it is not button or border
-    msg_no=13;
-// In case we are on one of the control bars, select the
-// appropriate message.
-    if(mouse_y >= hg_ston_y0) {
-        if(mouse_x >= timf2_hg_xmin && mouse_x <= timf2_hg_xmax) {
-            msg_no=14;
-        } else {
-            msg_no=-1;
-        }
-    } else {
-
-        if( mouse_x<hg_first_xpixel && mouse_y > hg_stonbars_ytop) {
-            if(mouse_x <= hg_ston1_x2) {
-                msg_no=15;
-            } else {
-                msg_no=16;
-            }
-        }
-    }
-    for(event_no=0; event_no<MAX_HGBUTT; event_no++) {
-        if( hgbutt[event_no].x1 <= mouse_x &&
-                hgbutt[event_no].x2 >= mouse_x &&
-                hgbutt[event_no].y1 <= mouse_y &&
-                hgbutt[event_no].y2 >= mouse_y) {
+	int msg_no = -1;
+    // Set msg to select a frequency in case it is not button or border
+    int event_no = 13;
+    // In case we are on one of the control bars, select the
+    // appropriate message.
+    if (mouse_y >= hg_ston_y0)
+        msg_no = (mouse_x >= timf2_hg_xmin && mouse_x <= timf2_hg_xmax) ? 14 : -1;
+    else if (mouse_x < hg_first_xpixel && mouse_y > hg_stonbars_ytop)
+        msg_no = (mouse_x <= hg_ston1_x2) ? 15 : 16;
+    for (event_no = 0; event_no < MAX_HGBUTT; ++ event_no)
+        if (hgbutt[event_no].x1 <= mouse_x && hgbutt[event_no].x2 >= mouse_x &&
+            hgbutt[event_no].y1 <= mouse_y && hgbutt[event_no].y2 >= mouse_y) {
             switch (event_no) {
             case HG_TOP:
             case HG_BOTTOM:
             case HG_LEFT:
-            case HG_RIGHT:
-                msg_no=100;
-                break;
-
-            case HG_BLN_STUPID:
-                msg_no=17;
-                break;
-
-            case HG_BLN_CLEVER:
-                msg_no=18;
-                break;
-
-            case HG_TIMF2_STATUS:
-                if(sw_onechan) {
-                    msg_no=19;
-                } else {
-                    msg_no=20;
-                }
-                break;
-
-            case HG_TIMF2_ST_INC:
-                msg_no=73;
-                break;
-
-            case HG_TIMF2_ST_DEC:
-                msg_no=74;
-                break;
-
-            case HG_TIMF2_WK_INC:
-                msg_no=75;
-                break;
-
-            case HG_TIMF2_WK_DEC:
-                msg_no=76;
-                break;
-
-            case HG_TIMF2_LINES:
-                msg_no=77;
-                break;
-
-            case HG_TIMF2_HOLD:
-                msg_no=78;
-                break;
-
-            case HG_FFT2_AVGNUM:
-                msg_no=62;
-                break;
-
-            case HG_SPECTRUM_GAIN:
-                msg_no=317;
-                break;
-
-            case HG_SPECTRUM_ZERO:
-                msg_no=318;
-                break;
+            case HG_RIGHT:          return 100;
+            case HG_BLN_STUPID:     return 17;
+            case HG_BLN_CLEVER:     return 18;
+            case HG_TIMF2_STATUS:   return sw_onechan ? 19 : 20;
+            case HG_TIMF2_ST_INC:   return 73;
+            case HG_TIMF2_ST_DEC:   return 74;
+            case HG_TIMF2_WK_INC:   return 75;
+            case HG_TIMF2_WK_DEC:   return 76;
+            case HG_TIMF2_LINES:    return 77;
+            case HG_TIMF2_HOLD:     return 78;
+            case HG_FFT2_AVGNUM:    return 62;
+            case HG_SPECTRUM_GAIN:  return 317;
+            case HG_SPECTRUM_ZERO:  return 318;
             }
         }
-    }
-    help_message(msg_no);
+    return msg_no;
 }
 
 void change_fft2avgnum(void)

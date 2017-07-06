@@ -1441,203 +1441,70 @@ void new_bg_waterfall_zero(void)
     sc[SC_BG_WATERF_REDRAW]++;
 }
 
-void help_on_baseband_graph(void)
+int help_on_baseband_graph(void)
 {
-    int msg_no;
+    // Set msg invalid in case we are not in any select area.
+    int msg_no = -1;
     int event_no;
-// Set msg invalid in case we are not in any select area.
-    msg_no=-1;
-    if(mouse_y < bg_y0) {
-        if(mouse_x < bg_first_xpixel) {
-            if(mouse_x >= bg_vol_x1 &&
-                    mouse_x <= bg_vol_x2 &&
-                    mouse_y >= bg_ymax) {
-                msg_no=33;
-            }
-        } else {
-            if(mouse_x < bg.xright-text_width-6) {
-                msg_no=34;
-            }
-        }
+    if (mouse_y < bg_y0) {
+        if (mouse_x < bg_first_xpixel) {
+            if (mouse_x >= bg_vol_x1 && mouse_x <= bg_vol_x2 && mouse_y >= bg_ymax)
+                msg_no = 33;
+        } else if(mouse_x < bg.xright-text_width-6)
+            msg_no = 34;
     }
-    for(event_no=0; event_no<MAX_BGBUTT; event_no++) {
-        if( bgbutt[event_no].x1 <= mouse_x &&
-                bgbutt[event_no].x2 >= mouse_x &&
-                bgbutt[event_no].y1 <= mouse_y &&
-                bgbutt[event_no].y2 >= mouse_y) {
+    for (event_no = 0; event_no < MAX_BGBUTT; ++ event_no)
+        if (bgbutt[event_no].x1 <= mouse_x && bgbutt[event_no].x2 >= mouse_x &&
+            bgbutt[event_no].y1 <= mouse_y && bgbutt[event_no].y2 >= mouse_y) {
             switch (event_no) {
             case BG_TOP:
             case BG_BOTTOM:
             case BG_LEFT:
             case BG_RIGHT:
-            case BG_YBORDER:
-                msg_no=100;
-                break;
-
-            case BG_YSCALE_EXPAND:
-                msg_no=35;
-                break;
-
-            case BG_YSCALE_CONTRACT:
-                msg_no=36;
-                break;
-
-            case BG_YZERO_DECREASE:
-                msg_no=37;
-                break;
-
-            case BG_YZERO_INCREASE:
-                msg_no=38;
-                break;
-
-            case BG_RESOLUTION_DECREASE:
-                msg_no=39;
-                break;
-
-            case BG_RESOLUTION_INCREASE:
-                msg_no=40;
-                break;
-
-            case BG_OSCILLOSCOPE:
-                msg_no=41;
-                break;
-
-            case BG_OSC_INCREASE:
-                msg_no=42;
-                break;
-
-            case BG_OSC_DECREASE:
-                msg_no=43;
-                break;
-
-            case BG_PIX_PER_PNT_INC:
-                msg_no=44;
-                break;
-
-            case BG_PIX_PER_PNT_DEC:
-                msg_no=45;
-                break;
-
-            case BG_TOGGLE_EXPANDER:
-                msg_no=46;
-                break;
-
-            case  BG_TOGGLE_COHERENT:
-                msg_no=47;
-                break;
-
-            case  BG_TOGGLE_PHASING:
-                msg_no=48;
-                break;
-
-            case BG_TOGGLE_TWOPOL:
-                msg_no=49;
-                break;
-
-            case  BG_TOGGLE_CHANNELS:
-                msg_no=50;
-                break;
-
-            case BG_TOGGLE_CH2_PHASE:
-                msg_no=328;
-                break;
-
-            case  BG_TOGGLE_BYTES:
-                msg_no=51;
-                break;
-
-            case BG_SEL_COHFAC:
-                msg_no=52;
-                break;
-
-            case BG_SEL_DELPNTS:
-                msg_no=53;
-                break;
-
-            case BG_SEL_FFT3AVGNUM:
-                msg_no=63;
-                break;
-
-            case BG_WATERF_AVGNUM:
-                msg_no=61;
-                break;
-
-            case BG_SEL_AGC_ATTACK:
-                msg_no=80;
-                break;
-
-            case BG_TOGGLE_AGC:
-                msg_no=79;
-                break;
-
-            case BG_SEL_AGC_RELEASE:
-                msg_no=81;
-                break;
-
-            case BG_SEL_AGC_HANG:
-                msg_no=331;
-                break;
-
-            case BG_WATERF_ZERO:
-                msg_no=64;
-                break;
-
-            case BG_WATERF_GAIN:
-                msg_no=66;
-                break;
-
-            case BG_HORIZ_ARROW_MODE:
-                msg_no=319;
-                break;
-
-            case BG_MIXER_MODE:
-                msg_no=88;
-                break;
-
-            case BG_FILTER_SHIFT:
-                msg_no=329;
-                break;
-
-            case BG_NOTCH_NO:
-                msg_no=320;
-                break;
-
-            case BG_NOTCH_WIDTH:
-                msg_no=321;
-                break;
-
-            case BG_NOTCH_POS:
-                msg_no=322;
-                break;
-
-            case BG_TOGGLE_FM_MODE:
-                msg_no=326;
-                break;
-
-            case BG_TOGGLE_FM_SUBTRACT:
-                msg_no=330;
-                break;
-
-            case BG_SEL_FM_AUDIO_BW:
-                msg_no=327;
-                break;
-
-            case BG_SQUELCH_LEVEL:
-                msg_no=336;
-                break;
-
-            case BG_SQUELCH_TIME:
-                msg_no=338;
-                break;
-
-            case BG_SQUELCH_POINT:
-                msg_no=337;
-                break;
-
+            case BG_YBORDER:                return 100;
+            case BG_YSCALE_EXPAND:          return 35;
+            case BG_YSCALE_CONTRACT:        return 36;
+            case BG_YZERO_DECREASE:         return 37;
+            case BG_YZERO_INCREASE:         return 38;
+            case BG_RESOLUTION_DECREASE:    return 39;
+            case BG_RESOLUTION_INCREASE:    return 40;
+            case BG_OSCILLOSCOPE:           return 41;
+            case BG_OSC_INCREASE:           return 42;
+            case BG_OSC_DECREASE:           return 43;
+            case BG_PIX_PER_PNT_INC:        return 44;
+            case BG_PIX_PER_PNT_DEC:        return 45;
+            case BG_TOGGLE_EXPANDER:        return 46;
+            case BG_TOGGLE_COHERENT:        return 47;
+            case BG_TOGGLE_PHASING:         return 48;
+            case BG_TOGGLE_TWOPOL:          return 49;
+            case BG_TOGGLE_CHANNELS:        return 50;
+            case BG_TOGGLE_CH2_PHASE:       return 328;
+            case BG_TOGGLE_BYTES:           return 51;
+            case BG_SEL_COHFAC:             return 52;
+            case BG_SEL_DELPNTS:            return 53;
+            case BG_SEL_FFT3AVGNUM:         return 63;
+            case BG_WATERF_AVGNUM:          return 61;
+            case BG_SEL_AGC_ATTACK:         return 80;
+            case BG_TOGGLE_AGC:             return 79;
+            case BG_SEL_AGC_RELEASE:        return 81;
+            case BG_SEL_AGC_HANG:           return 331;
+            case BG_WATERF_ZERO:            return 64;
+            case BG_WATERF_GAIN:            return 66;
+            case BG_HORIZ_ARROW_MODE:       return 319;
+            case BG_MIXER_MODE:             return 88;
+            case BG_FILTER_SHIFT:           return 329;
+            case BG_NOTCH_NO:               return 320;
+            case BG_NOTCH_WIDTH:            return 321;
+            case BG_NOTCH_POS:              return 322;
+            case BG_TOGGLE_FM_MODE:         return 326;
+            case BG_TOGGLE_FM_SUBTRACT:     return 330;
+            case BG_SEL_FM_AUDIO_BW:        return 327;
+            case BG_SQUELCH_LEVEL:          return 336;
+            case BG_SQUELCH_TIME:           return 338;
+            case BG_SQUELCH_POINT:          return 337;
             }
         }
-    }
-    help_message(msg_no);
+    return msg_no;
 }
 
 void change_fft3_avgnum(void)

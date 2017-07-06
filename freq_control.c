@@ -171,51 +171,26 @@ void new_rx_gain_value(void)
     make_modepar_file(GRAPHTYPE_FG);
 }
 
-void help_on_freq_graph(void)
+int help_on_freq_graph(void)
 {
-    int msg_no;
+    int msg_no = (mouse_y <= fg.yborder) ? 84 : 87;
     int event_no;
-    if(mouse_y <= fg.yborder) {
-        msg_no=84;
-    } else {
-        msg_no=87;
-    }
-    for(event_no=0; event_no<MAX_FGBUTT; event_no++) {
-        if( fgbutt[event_no].x1 <= mouse_x &&
-                fgbutt[event_no].x2 >= mouse_x &&
-                fgbutt[event_no].y1 <= mouse_y &&
-                fgbutt[event_no].y2 >= mouse_y) {
+    for (event_no = 0; event_no < MAX_FGBUTT; ++ event_no)
+        if (fgbutt[event_no].x1 <= mouse_x && fgbutt[event_no].x2 >= mouse_x &&
+            fgbutt[event_no].y1 <= mouse_y && fgbutt[event_no].y2 >= mouse_y) {
             switch (event_no) {
             case FG_TOP:
             case FG_BOTTOM:
             case FG_LEFT:
-            case FG_RIGHT:
-                msg_no=101;
-                break;
-
-            case FG_INCREASE_FQ:
-                msg_no=83;
-                break;
-
-            case FG_DECREASE_FQ:
-                msg_no=82;
-                break;
-
-            case FG_INCREASE_GAIN:
-                msg_no=85;
-                break;
-
-            case FG_DECREASE_GAIN:
-                msg_no=86;
-                break;
+            case FG_RIGHT:          return 101;
+            case FG_INCREASE_FQ:    return 83;
+            case FG_DECREASE_FQ:    return 82;
+            case FG_INCREASE_GAIN:  return 85;
+            case FG_DECREASE_GAIN:  return 86;
             }
         }
-    }
-    help_message(msg_no);
+    return msg_no;
 }
-
-
-
 
 void mouse_continue_freq_graph(void)
 {

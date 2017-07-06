@@ -78,44 +78,26 @@ void check_pg_borders(void)
     set_graph_minwidth((void*)(&pg));
 }
 
-void help_on_pol_graph(void)
+int help_on_pol_graph(void)
 {
-    int msg_no;
+    // Set msg invalid in case we are not in any select area.
+    int msg_no = -1;
     int event_no;
-// Set msg invalid in case we are not in any select area.
-    msg_no=-1;
-    for(event_no=0; event_no<MAX_PGBUTT; event_no++) {
-        if( pgbutt[event_no].x1 <= mouse_x &&
-                pgbutt[event_no].x2 >= mouse_x &&
-                pgbutt[event_no].y1 <= mouse_y &&
-                pgbutt[event_no].y2 >= mouse_y) {
+    for (event_no = 0; event_no < MAX_PGBUTT; ++ event_no)
+        if (pgbutt[event_no].x1 <= mouse_x && pgbutt[event_no].x2 >= mouse_x &&
+            pgbutt[event_no].y1 <= mouse_y && pgbutt[event_no].y2 >= mouse_y) {
             switch (event_no) {
             case PG_TOP:
             case PG_BOTTOM:
             case PG_LEFT:
-            case PG_RIGHT:
-                msg_no=101;
-                break;
-
-            case PG_AUTO:
-                msg_no=54;
-                break;
-
-            case PG_ANGLE:
-                msg_no=55;
-                break;
-
-            case PG_CIRC:
-                msg_no=56;
-                break;
-
-            case PG_AVGNUM:
-                msg_no=57;
-                break;
-            }
+            case PG_RIGHT:              return 101;
+            case PG_AUTO:               return 54;
+            case PG_ANGLE:              return 55;
+            case PG_CIRC:               return 56;
+            case PG_AVGNUM:             return 57;
         }
     }
-    help_message(msg_no);
+    return msg_no;
 }
 
 void mouse_continue_pol_graph(void)

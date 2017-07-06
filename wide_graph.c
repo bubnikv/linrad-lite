@@ -410,118 +410,40 @@ void decrease_wg_pixels_per_points(void)
     }
 }
 
-void help_on_wide_graph(void)
+int help_on_wide_graph(void)
 {
-    int msg_no;
     int event_no;
-// Set msg to select a frequency in case it is not button or border
-    msg_no=340;
-// First find out is we are on a button or border line.
-    for(event_no=0; event_no<MAX_WGBUTT; event_no++) {
-        if( wgbutt[event_no].x1 <= mouse_x &&
-                wgbutt[event_no].x2 >= mouse_x &&
-                wgbutt[event_no].y1 <= mouse_y &&
-                wgbutt[event_no].y2 >= mouse_y) {
+    // First find out is we are on a button or border line.
+    for (event_no = 0; event_no < MAX_WGBUTT; ++ event_no)
+        if (wgbutt[event_no].x1 <= mouse_x && wgbutt[event_no].x2 >= mouse_x &&
+            wgbutt[event_no].y1 <= mouse_y && wgbutt[event_no].y2 >= mouse_y) {
             switch (event_no) {
             case WG_TOP:
             case WG_BORDER:
             case WG_BOTTOM:
             case WG_LEFT:
-            case WG_RIGHT:
-                msg_no=100;
-                break;
-
-            case WG_YSCALE_EXPAND:
-                msg_no=3;
-                break;
-
-            case WG_YSCALE_CONTRACT:
-                msg_no=4;
-                break;
-
-            case WG_YZERO_DECREASE:
-                msg_no=5;
-                break;
-
-            case WG_YZERO_INCREASE:
-                msg_no=6;
-                break;
-
-            case WG_FQMIN_DECREASE:
-                msg_no=7;
-                break;
-
-            case WG_FQMIN_INCREASE:
-                msg_no=8;
-                break;
-
-            case WG_FQMAX_DECREASE:
-                msg_no=9;
-                break;
-
-            case WG_FQMAX_INCREASE:
-                msg_no=10;
-                break;
-
-            case WG_SPUR_TOGGLE:
-                msg_no=316;
-                break;
-
-            case WG_AVG1NUM:
-                if(genparm[SECOND_FFT_ENABLE]==0) {
-                    msg_no=11;
-                } else {
-                    msg_no=12;
-                }
-                break;
-
-            case WG_FFT1_AVGNUM:
-                if(genparm[SECOND_FFT_ENABLE] == 0) {
-                    msg_no=58;
-                } else {
-                    msg_no=59;
-                }
-                break;
-
-            case WG_WATERF_AVGNUM:
-                if(genparm[SECOND_FFT_ENABLE] == 0) {
-                    msg_no=60;
-                } else {
-                    msg_no=61;
-                }
-                break;
-
-            case WG_WATERF_ZERO:
-                if(genparm[SECOND_FFT_ENABLE] == 0) {
-                    msg_no=64;
-                } else {
-                    msg_no=65;
-                }
-                break;
-
-            case WG_WATERF_GAIN:
-                if(genparm[SECOND_FFT_ENABLE] == 0) {
-                    msg_no=66;
-                } else {
-                    msg_no=67;
-                }
-                break;
-
-            case WG_FREQ_ADJUSTMENT_MODE:
-                msg_no=323;
-                break;
-
-            case WG_LOWEST_FREQ:
-                msg_no=324;
-                break;
-
-            case WG_HIGHEST_FREQ:
-                msg_no=325;
-                break;
+            case WG_RIGHT:              return 100;
+            case WG_YSCALE_EXPAND:      return 3;
+            case WG_YSCALE_CONTRACT:    return 4;
+            case WG_YZERO_DECREASE:     return 5;
+            case WG_YZERO_INCREASE:     return 6;
+            case WG_FQMIN_DECREASE:     return 7;
+            case WG_FQMIN_INCREASE:     return 8;
+            case WG_FQMAX_DECREASE:     return 9;
+            case WG_FQMAX_INCREASE:     return 10;
+            case WG_SPUR_TOGGLE:        return 316;
+            case WG_AVG1NUM:            return genparm[SECOND_FFT_ENABLE] ? 12 : 11;
+            case WG_FFT1_AVGNUM:        return genparm[SECOND_FFT_ENABLE] ? 59 : 58;
+            case WG_WATERF_AVGNUM:      return genparm[SECOND_FFT_ENABLE] ? 61 : 60;
+            case WG_WATERF_ZERO:        return genparm[SECOND_FFT_ENABLE] ? 65 : 64;
+            case WG_WATERF_GAIN:        return genparm[SECOND_FFT_ENABLE] ? 67 : 66;
+            case WG_FREQ_ADJUSTMENT_MODE: return 323;
+            case WG_LOWEST_FREQ:        return 324;
+            case WG_HIGHEST_FREQ:       return 325;
             }
         }
-    }
-    help_message(msg_no);
+    // Set msg to select a frequency in case it is not button or border
+    return 340;
 }
 
 void change_fft1avgnum(void)

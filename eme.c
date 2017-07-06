@@ -410,41 +410,25 @@ new_eme_dx_x:
     resume_thread(THREAD_SCREEN);
 }
 
-
-void help_on_eme_graph(void)
+int help_on_eme_graph(void)
 {
-    int msg_no;
+    // Set msg invalid in case we are not in any select area.
+    int msg_no=-1;
     int event_no;
-// Set msg invalid in case we are not in any select area.
-    msg_no=-1;
-    for(event_no=0; event_no<MAX_EGBUTT; event_no++) {
-        if( egbutt[event_no].x1 <= mouse_x &&
-                egbutt[event_no].x2 >= mouse_x &&
-                egbutt[event_no].y1 <= mouse_y &&
-                egbutt[event_no].y2 >= mouse_y) {
+    for (event_no = 0; event_no < MAX_EGBUTT; ++ event_no)
+        if (egbutt[event_no].x1 <= mouse_x && egbutt[event_no].x2 >= mouse_x &&
+            egbutt[event_no].y1 <= mouse_y && egbutt[event_no].y2 >= mouse_y) {
             switch (event_no) {
             case EG_TOP:
             case EG_BOTTOM:
             case EG_LEFT:
-            case EG_RIGHT:
-                msg_no=101;
-                break;
-
-            case EG_MINIMISE:
-                msg_no=70;
-                break;
-
-            case EG_LOC:
-                msg_no=71;
-                break;
-
-            case EG_DX:
-                msg_no=72;
-                break;
+            case EG_RIGHT:      return 101;
+            case EG_MINIMISE:   return 70;
+            case EG_LOC:        return 71;
+            case EG_DX:         return 72;
             }
         }
-    }
-    help_message(msg_no);
+    return msg_no;
 }
 
 void mouse_continue_eme_graph(void)

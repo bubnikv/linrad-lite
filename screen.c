@@ -1390,6 +1390,9 @@ void show_bg_buttons(int all)
     settextcolor(7);
 }
 
+// The current screen object, over which the mouse hovers.
+// Used to display the bubble help.
+int help_bubble_current_id = -1;
 
 void redraw_wg_waterfall(void)
 {
@@ -2124,8 +2127,22 @@ restart:
 // Show baseband max amplitude in the baseband graph
         current_time();
         if(recent_time-bg_maxamp_time > 0.05) {
-            bg_maxamp_time=recent_time;
-            if( bg_maxamp != 0)show_bg_maxamp();
+            int help_id_new = help_screen_object_below_mouse();
+            if (help_id_new != help_bubble_current_id) {
+                int y0 = 0;
+                int i;
+                for (i = 0; i < no_of_scro; ++ i)
+                    if (scro[i].y2 > y0)
+                        y0 = scro[i].y2;
+                y0 += text_height - 1;
+                y0 /= text_height;
+                if (y0 > screen_last_line)
+                    y0 = screen_last_line;
+                help_bubble(14, y0, help_bubble_current_id = help_id_new);
+            }
+            bg_maxamp_time = recent_time;
+            if (bg_maxamp != 0)
+                show_bg_maxamp();
         }
         if(pg.enable_phasing == 1) {
             if(fabs(phasing_time-recent_time) > phasing_update_interval) {

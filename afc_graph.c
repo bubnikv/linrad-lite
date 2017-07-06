@@ -554,81 +554,39 @@ void new_afc_delay(void)
     new_afc_graph();
 }
 
-void help_on_afc_graph(void)
+int help_on_afc_graph(void)
 {
-    int msg_no;
+    // Nothing is selected in the data area.
+    int msg_no= -1;
     int event_no;
-// Nothing is selected in the data area.
-    msg_no=-1;
-// In case we are on one of the control bars, select the
-// appropriate message.
-    if(mouse_y <= ag_fpar_y0 && mouse_y >= ag_fpar_ytop) {
-        if( mouse_x<ag_first_xpixel) {
-            if(mouse_x >= ag_ston_x1 && mouse_x <= ag_ston_x2) {
-                if(genparm[SECOND_FFT_ENABLE] == 0) {
-                    msg_no=21;
-                } else {
-                    msg_no=22;
-                }
-            } else {
-                if(mouse_x >= ag_lock_x1 && mouse_x <= ag_lock_x2) {
-                    msg_no=23;
-                } else {
-                    if(mouse_x >= ag_srch_x1 && mouse_x <= ag_srch_x2) {
-                        msg_no=24;
-                    }
-                }
-            }
-        }
+    // In case we are on one of the control bars, select the
+    // appropriate message.
+    if (mouse_y <= ag_fpar_y0 && mouse_y >= ag_fpar_ytop && mouse_x < ag_first_xpixel) {
+        if (mouse_x >= ag_ston_x1 && mouse_x <= ag_ston_x2)
+            msg_no = genparm[SECOND_FFT_ENABLE] ? 22 : 21;
+        else if (mouse_x >= ag_lock_x1 && mouse_x <= ag_lock_x2)
+            msg_no = 23;
+        else if (mouse_x >= ag_srch_x1 && mouse_x <= ag_srch_x2)
+            msg_no = 24;
     }
-    for(event_no=0; event_no<MAX_AGBUTT; event_no++) {
-        if( agbutt[event_no].x1 <= mouse_x &&
-                agbutt[event_no].x2 >= mouse_x &&
-                agbutt[event_no].y1 <= mouse_y &&
-                agbutt[event_no].y2 >= mouse_y) {
+    for (event_no = 0; event_no < MAX_AGBUTT; ++ event_no)
+        if (agbutt[event_no].x1 <= mouse_x && agbutt[event_no].x2 >= mouse_x &&
+            agbutt[event_no].y1 <= mouse_y && agbutt[event_no].y2 >= mouse_y) {
             switch (event_no) {
             case AG_TOP:
             case AG_BOTTOM:
             case AG_LEFT:
-            case AG_RIGHT:
-                msg_no=100;
-                break;
-
-            case AG_FQSCALE_EXPAND:
-                msg_no=25;
-                break;
-
-            case AG_FQSCALE_CONTRACT:
-                msg_no=26;
-                break;
-
-            case AG_MANAUTO:
-                msg_no=27;
-                break;
-
-            case AG_WINTOGGLE:
-                msg_no=28;
-                break;
-
-            case AG_SEL_AVGNUM:
-                if(genparm[SECOND_FFT_ENABLE] == 0) {
-                    msg_no=29;
-                } else {
-                    msg_no=30;
-                }
-                break;
-
-            case AG_SEL_DELAY:
-                msg_no=31;
-                break;
-
-            case AG_SEL_FIT:
-                msg_no=32;
-                break;
+            case AG_RIGHT:              return 100;
+            case AG_FQSCALE_EXPAND:     return 25;
+            case AG_FQSCALE_CONTRACT:   return 26;
+            case AG_MANAUTO:            return 27;
+            case AG_WINTOGGLE:          return 28;
+            case AG_SEL_AVGNUM:         return genparm[SECOND_FFT_ENABLE] ? 30 : 29;
+            case AG_SEL_DELAY:          return 31;
+            case AG_SEL_FIT:            return 32;
             }
         }
-    }
-    help_message(msg_no);
+    return msg_no;
 }
 
 void mouse_continue_afc_graph(void)

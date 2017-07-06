@@ -437,48 +437,27 @@ void new_mute_off(void)
     save_tx_parms(FALSE);
 }
 
-void help_on_tx_graph(void)
+int help_on_tx_graph(void)
 {
-    int msg_no;
+    // Set msg invalid in case we are not in any select area.
+    int msg_no = -1;
     int event_no;
-// Set msg invalid in case we are not in any select area.
-    msg_no=-1;
-    for(event_no=0; event_no<MAX_TGBUTT; event_no++) {
-        if( tgbutt[event_no].x1 <= mouse_x &&
-                tgbutt[event_no].x2 >= mouse_x &&
-                tgbutt[event_no].y1 <= mouse_y &&
-                tgbutt[event_no].y2 >= mouse_y) {
+    for (event_no = 0; event_no < MAX_TGBUTT; ++ event_no)
+        if (tgbutt[event_no].x1 <= mouse_x && tgbutt[event_no].x2 >= mouse_x &&
+            tgbutt[event_no].y1 <= mouse_y && tgbutt[event_no].y2 >= mouse_y) {
             switch (event_no) {
             case TG_TOP:
             case TG_BOTTOM:
             case TG_LEFT:
-            case TG_RIGHT:
-                msg_no=101;
-                break;
-
-            case TG_INCREASE_FQ:
-                msg_no=104;
-                break;
-
-            case TG_DECREASE_FQ:
-                msg_no=103;
-                break;
-
-            case TG_NEW_TX_FREQUENCY:
-                msg_no=105;
-                break;
-
-            case TG_SET_SIGNAL_LEVEL:
-                msg_no=107;
-                break;
-
-            case TG_CHANGE_TXPAR_FILE_NO:
-                msg_no=106;
-                break;
+            case TG_RIGHT:              return 101;
+            case TG_INCREASE_FQ:        return 104;
+            case TG_DECREASE_FQ:        return 103;
+            case TG_NEW_TX_FREQUENCY:   return 105;
+            case TG_SET_SIGNAL_LEVEL:   return 107;
+            case TG_CHANGE_TXPAR_FILE_NO:return 106;
             }
         }
-    }
-    help_message(msg_no);
+    return msg_no;
 }
 
 void mouse_continue_tx_graph(void)

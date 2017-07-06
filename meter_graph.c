@@ -65,68 +65,32 @@ void change_meter_ston_sigshift(void)
 }
 
 
-void help_on_meter_graph(void)
+int help_on_meter_graph(void)
 {
-    int mmg_no;
+    // Nothing is selected in the data area.
+    int mmg_no = 312;
     int event_no;
-// Nothing is selected in the data area.
-    mmg_no=312;
-    for(event_no=0; event_no<MAX_MGBUTT; event_no++) {
-        if( mgbutt[event_no].x1 <= mouse_x &&
-                mgbutt[event_no].x2 >= mouse_x &&
-                mgbutt[event_no].y1 <= mouse_y &&
-                mgbutt[event_no].y2 >= mouse_y) {
+    for (event_no = 0; event_no < MAX_MGBUTT; ++ event_no)
+        if (mgbutt[event_no].x1 <= mouse_x && mgbutt[event_no].x2 >= mouse_x &&
+            mgbutt[event_no].y1 <= mouse_y && mgbutt[event_no].y2 >= mouse_y) {
             switch (event_no) {
             case MG_TOP:
             case MG_BOTTOM:
             case MG_LEFT:
-            case MG_RIGHT:
-                mmg_no=102;
-                break;
-
-            case MG_CHANGE_CAL:
-                mmg_no=90;
-                break;
-
-            case MG_CHANGE_TYPE:
-                mmg_no=91;
-                break;
-
-            case MG_INCREASE_AVGN:
-                mmg_no=92;
-                break;
-
-            case MG_DECREASE_AVGN:
-                mmg_no=93;
-                break;
-
-            case MG_INCREASE_GAIN:
-                mmg_no=94;
-                break;
-
-            case MG_DECREASE_GAIN:
-                mmg_no=95;
-                break;
-
-            case MG_INCREASE_YREF:
-                mmg_no=96;
-                break;
-
-            case MG_DECREASE_YREF:
-                mmg_no=97;
-                break;
-
-            case MG_CHANGE_TRACKS:
-                mmg_no=98;
-                break;
-
-            case MG_SCALE_STON_SIGSHIFT:
-                mmg_no=341;
-                break;
+            case MG_RIGHT:              return 102;
+            case MG_CHANGE_CAL:         return 90;
+            case MG_CHANGE_TYPE:        return 91;
+            case MG_INCREASE_AVGN:      return 92;
+            case MG_DECREASE_AVGN:      return 93;
+            case MG_INCREASE_GAIN:      return 94;
+            case MG_DECREASE_GAIN:      return 95;
+            case MG_INCREASE_YREF:      return 96;
+            case MG_DECREASE_YREF:      return 97;
+            case MG_CHANGE_TRACKS:      return 98;
+            case MG_SCALE_STON_SIGSHIFT:return 341;
             }
         }
-    }
-    help_message(mmg_no);
+    return mmg_no;
 }
 
 void mouse_continue_meter_graph(void)
