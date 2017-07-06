@@ -1,10 +1,9 @@
-
+// Current mode of the 1st FFT for the active receiver.
 #define FFT1_CURMODE fft1_version[fft1mode][genparm[FIRST_FFT_VERNR]]
+// Current mode of the 1st reverse FFT for the active receiver.
 #define FFT1_BCKCURMODE fft1_back_version[ui.rx_rf_channels-1][genparm[FIRST_BCKFFT_VERNR]]
 
 #define TXTEST_PEAK_REDRAW_COUNT 10
-
-#define FFT1_NETSEND_MAXBUF 32
 
 // Length of buffer indicators shown when "T" is pressed.
 #define INDICATOR_SIZE 128

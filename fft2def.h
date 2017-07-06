@@ -1,4 +1,5 @@
 
+// Current mode of the 2nd FFT for the active receiver.
 #define FFT2_CURMODE fft2_version[ui.rx_rf_channels-1][genparm[SECOND_FFT_VERNR]]
 
 

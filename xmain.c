@@ -113,10 +113,6 @@ typedef struct {
 char screen_filename[]="par_linux_screen";
 char *screen_types[4]= {"X11","MIT-SHM","SVGALIB","FBDEV"};
 
-#if CPU == CPU_ARM
-void outsb(void) {};
-#endif
-
 
 int xmain( char **argv);
 int lmain(void);

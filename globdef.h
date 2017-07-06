@@ -9,9 +9,6 @@
 
 #define INITIAL_SKIP_FLAG_MAX 25
 
-#define CPU_INTEL 0
-#define CPU_ARM 1
-
 #define CALLBACK_CMD_START 3
 #define CALLBACK_ANSWER_AWAKE 2
 #define CALLBACK_CMD_ACTIVE 1
@@ -46,12 +43,13 @@ typedef struct {
 #define CONVERTER_LO_BELOW 4
 
 // Pointers into the SOUNDCARD_PARM snd[4] structures.
-#define RXAD 0
-#define RXDA 1
-#define TXDA 2
-#define TXAD 3
-#define MAX_IOTEST 3
-
+enum SoundcardParmPointerType {
+    RXAD            = 0,
+    RXDA            = 1,
+    TXDA            = 2,
+    TXAD            = 3,
+    MAX_IOTEST      = TXAD,
+};
 
 #define RX_SOUNDCARD_RADIO_UNDEFINED 0
 #define RX_SOUNDCARD_RADIO_UNDEFINED_REVERSED 1
@@ -72,15 +70,18 @@ typedef struct {
 #define MAX_FFT1_AVG1 9
 
 #define NO_REDRAW_BLOCKS 16
+
 // *******************************************
 // Global numerical values
 #define PI_L 3.1415926535897932
 #define BIGFLOAT 300000000000000000000000000000000000000.F
 #define BIGDOUBLE 300000000000000000000000000000000000000.
+
 // Signal power to the power of four may become a very large number.
 // Define something small to multiply by to prevent overflows.
 #define P4SCALE 0.000000000000000000001
 #define P2SCALE 0.00000000001
+
 // values for lir_status
 // Memory errors are larger than LIR_OK.
 // Other abnormal conditions smaller than LIR_OK.
@@ -101,43 +102,54 @@ typedef struct {
 #define LIR_PA_START_STREAM_FAILED -11
 #define LIR_DLL_FAILED -12
 #define LIR_TXPAR_FAILED -13
+
 // *******************************************
 // Fixed array dimensions depend on these defines:
-
-#define MODE_WCW 0
-#define MODE_NCW 1
-#define MODE_HSMS 2
-#define MODE_SSB 3
-#define MODE_FM 4
-#define MODE_AM 5
-#define MODE_QRSS 6
-// Note that modes below MODE_TXTEST are allowed to call
-// users tx routines, but that MODE_TXTEST and higher may
-// call users_init_mode, but users_hwaredriver is responsible
-// for checking rx_mode < MODE_TXTEST and not do any tx
-// activities or screen writes.
-#define MODE_TXTEST 7
-#define MODE_RX_ADTEST 8
-// Note that MAX_RX_MODES can be up to 12. 'L' is reserved
-// for an new mode that might be desireable to add.
-#define MAX_RX_MODE 11
+enum ProcessingMode {
+    // Wideband CW
+    MODE_WCW        = 0,
+    // Narrowband CW
+    MODE_NCW        = 1,
+    MODE_HSMS       = 2,
+    MODE_SSB        = 3,
+    MODE_FM         = 4,
+    MODE_AM         = 5,
+    MODE_QRSS       = 6,
+    // Note that modes below MODE_TXTEST are allowed to call
+    // users tx routines, but that MODE_TXTEST and higher may
+    // call users_init_mode, but users_hwaredriver is responsible
+    // for checking rx_mode < MODE_TXTEST and not do any tx
+    // activities or screen writes.
+    MODE_TXTEST     = 7,
+    MODE_RX_ADTEST  = 8,
+    // Note that MAX_RX_MODES can be up to 12. 'L' is reserved
+    // for an new mode that might be desireable to add.
+    MAX_RX_MODE     = 11,
+};
 
 //******************************************************************
 // Information about what device drivers to use for soundcards
 // is stored in ui.use_alsa. The name has became misleading,
 // but a change would make par_userint incompatible once again...
 // Use the following masks for testing on ui.use_alsa
-#define NATIVE_ALSA_USED 1
-#define PORTAUDIO_RX_IN 2
-#define PORTAUDIO_RX_OUT 4
-#define PORTAUDIO_TX_IN 8
-#define PORTAUDIO_TX_OUT 16
-#define PORTAUDIO_DLL_VERSION (32+64+128)
-#define RXAD_USE_EXTENSIBLE 256
-#define RXDA_USE_EXTENSIBLE 512
-#define TXAD_USE_EXTENSIBLE 1024
-#define TXDA_USE_EXTENSIBLE 2048
-#define SOUND_SYSTEM_DEFINED 2096
+enum SoundSystemType {
+    // Linux specific: Directly accessing an ALSA driver.
+    NATIVE_ALSA_USED        = 1 << 0,
+    // PortAudio library is supported on all systems.
+    PORTAUDIO_RX_IN         = 1 << 1,
+    PORTAUDIO_RX_OUT        = 1 << 2,
+    PORTAUDIO_TX_IN         = 1 << 3,
+    PORTAUDIO_TX_OUT        = 1 << 4,
+    PORTAUDIO_DLL_VERSION   = (1<<5)|(1<<6)|(1<<7),
+    // Win32 specific: Use the WAVE_FORMAT_EXTENSIBLE for MME audio API.
+    RXAD_USE_EXTENSIBLE     = 1 << 8,
+    RXDA_USE_EXTENSIBLE     = 1 << 9,
+    TXAD_USE_EXTENSIBLE     = 1 << 10,
+    TXDA_USE_EXTENSIBLE     = 1 << 11,
+    // Sound system defined mask on Linux.
+    SOUND_SYSTEM_DEFINED    = 2096
+};
+
 #define TXMODE_OFF 0
 #define TXMODE_CW 1
 #define TXMODE_SSB 2
@@ -210,49 +222,52 @@ typedef void (*ROUTINE) (void);
 #define FLOAT_INPUT 64
 #define QWORD_INPUT 128
 #define MODEPARM_MAX 256
+
 // *******************************************
 // Processing parameter definitions
-#define FIRST_FFT_BANDWIDTH 0
-#define FIRST_FFT_SINPOW 1
-#define FIRST_FFT_VERNR 2
-#define FIRST_FFT_NO_OF_THREADS 3
-#define FFT1_STORAGE_TIME 4
-#define FIRST_FFT_GAIN 5
-#define WG_WATERF_BLANKED_PERCENT 6
-#define FFT1_CORRELATION_SPECTRUM 7
-#define SECOND_FFT_ENABLE 8
+enum GenParmType {
+    FIRST_FFT_BANDWIDTH         = 0,
+    FIRST_FFT_SINPOW            = 1,
+    FIRST_FFT_VERNR             = 2,
+    FIRST_FFT_NO_OF_THREADS     = 3,
+    FFT1_STORAGE_TIME           = 4,
+    FIRST_FFT_GAIN              = 5,
+    WG_WATERF_BLANKED_PERCENT   = 6,
+    FFT1_CORRELATION_SPECTRUM   = 7,
+    SECOND_FFT_ENABLE           = 8,
 
-#define FIRST_BCKFFT_VERNR 9
-#define SELLIM_MAXLEVEL 10
-#define FIRST_BCKFFT_ATT_N 11
-#define SECOND_FFT_NINC 12
-#define SECOND_FFT_SINPOW 13
-#define SECOND_FFT_VERNR 14
-#define SECOND_FFT_ATT_N 15
-#define FFT2_STORAGE_TIME 16
+    FIRST_BCKFFT_VERNR          = 9,
+    SELLIM_MAXLEVEL             = 10,
+    FIRST_BCKFFT_ATT_N          = 11,
+    SECOND_FFT_NINC             = 12,
+    SECOND_FFT_SINPOW           = 13,
+    SECOND_FFT_VERNR            = 14,
+    SECOND_FFT_ATT_N            = 15,
+    FFT2_STORAGE_TIME           = 16,
 
-#define AFC_ENABLE 17
-#define AFC_LOCK_RANGE 18
-#define AFC_MAX_DRIFT 19
-#define CW_DECODE_ENABLE 20
-#define MAX_NO_OF_SPURS 21
-#define SPUR_TIMECONSTANT 22
+    AFC_ENABLE                  = 17,
+    AFC_LOCK_RANGE              = 18,
+    AFC_MAX_DRIFT               = 19,
+    CW_DECODE_ENABLE            = 20,
+    MAX_NO_OF_SPURS             = 21,
+    SPUR_TIMECONSTANT           = 22,
 
-#define MIX1_BANDWIDTH_REDUCTION_N 23
-#define MIX1_NO_OF_CHANNELS 24
-#define THIRD_FFT_SINPOW 25
-#define BASEBAND_STORAGE_TIME 26
-#define OUTPUT_DELAY_MARGIN 27
-#define DA_OUTPUT_SPEED 28
+    MIX1_BANDWIDTH_REDUCTION_N  = 23,
+    MIX1_NO_OF_CHANNELS         = 24,
+    THIRD_FFT_SINPOW            = 25,
+    BASEBAND_STORAGE_TIME       = 26,
+    OUTPUT_DELAY_MARGIN         = 27,
+    DA_OUTPUT_SPEED             = 28,
 
-#define OUTPUT_MODE 29
+    OUTPUT_MODE                 = 29,
 
-#define AMPLITUDE_EXPAND_EXPONENT 30
-#define BG_WATERF_BLANKED_PERCENT 31
+    AMPLITUDE_EXPAND_EXPONENT   = 30,
+    BG_WATERF_BLANKED_PERCENT   = 31,
 
 // Parameters of a receiver, mode specific.
 // Length of the genparm, genparm_min, genparm_max, genparm_default, genparm_text, newco_genparm tables.
-#define MAX_GENPARM 32
+    MAX_GENPARM                 = 32,
+};
 
 // *******************************************************
 // Defines for state machine in fft2.c
@@ -496,224 +511,241 @@ extern char *uiparm_text[MAX_UIPARM];
 #define EG_LOC_CHARS 6
 
 // Definitions for type WIDE_GRAPH
-#define WG_TOP 0
-#define WG_BOTTOM 1
-#define WG_LEFT 2
-#define WG_RIGHT 3
-#define WG_BORDER 4
-#define WG_YSCALE_EXPAND 5
-#define WG_YSCALE_CONTRACT 6
-#define WG_YZERO_DECREASE 7
-#define WG_YZERO_INCREASE 8
-#define WG_FQMIN_DECREASE 9
-#define WG_FQMIN_INCREASE 10
-#define WG_FQMAX_DECREASE 11
-#define WG_FQMAX_INCREASE 12
-#define WG_AVG1NUM 13
-#define WG_FFT1_AVGNUM 14
-#define WG_WATERF_AVGNUM 15
-#define WG_WATERF_ZERO 16
-#define WG_WATERF_GAIN 17
-#define WG_SPUR_TOGGLE 18
-#define WG_FREQ_ADJUSTMENT_MODE 19
-#define WG_LOWEST_FREQ 20
-#define WG_HIGHEST_FREQ 21
-#define MAX_WGBUTT 22
+enum WideGraphParameters {
+    WG_TOP              = 0,
+    WG_BOTTOM           = 1,
+    WG_LEFT             = 2,
+    WG_RIGHT            = 3,
+    WG_BORDER           = 4,
+    WG_YSCALE_EXPAND    = 5,
+    WG_YSCALE_CONTRACT  = 6,
+    WG_YZERO_DECREASE   = 7,
+    WG_YZERO_INCREASE   = 8,
+    WG_FQMIN_DECREASE   = 9,
+    WG_FQMIN_INCREASE   = 10,
+    WG_FQMAX_DECREASE   = 11,
+    WG_FQMAX_INCREASE   = 12,
+    WG_AVG1NUM          = 13,
+    WG_FFT1_AVGNUM      = 14,
+    WG_WATERF_AVGNUM    = 15,
+    WG_WATERF_ZERO      = 16,
+    WG_WATERF_GAIN      = 17,
+    WG_SPUR_TOGGLE      = 18,
+    WG_FREQ_ADJUSTMENT_MODE = 19,
+    WG_LOWEST_FREQ      = 20,
+    WG_HIGHEST_FREQ     = 21,
+    MAX_WGBUTT          = 22,
+};
 
 // Definitions for type HIRES_GRAPH
-#define HG_TOP 0
-#define HG_BOTTOM 1
-#define HG_LEFT 2
-#define HG_RIGHT 3
-#define HG_BLN_STUPID 4
-#define HG_BLN_CLEVER 5
-#define HG_TIMF2_STATUS 6
-#define HG_TIMF2_WK_INC 7
-#define HG_TIMF2_WK_DEC 8
-#define HG_TIMF2_ST_INC 9
-#define HG_TIMF2_ST_DEC 10
-#define HG_TIMF2_LINES 11
-#define HG_TIMF2_HOLD 12
-#define HG_FFT2_AVGNUM 13
-#define HG_SPECTRUM_ZERO 14
-#define HG_SPECTRUM_GAIN 15
-#define HG_SELLIM_PAR1 18
-#define HG_SELLIM_PAR2 19
-#define HG_SELLIM_PAR2 19
-#define HG_SELLIM_PAR3 20
-#define HG_SELLIM_PAR4 21
-#define HG_SELLIM_PAR5 22
-#define HG_SELLIM_PAR6 23
-#define HG_SELLIM_PAR7 24
-#define HG_SELLIM_PAR8 25
-#define MAX_HGBUTT 26
+enum HiresGraphParameters {
+    HG_TOP              = 0,
+    HG_BOTTOM           = 1,
+    HG_LEFT             = 2,
+    HG_RIGHT            = 3,
+    HG_BLN_STUPID       = 4,
+    HG_BLN_CLEVER       = 5,
+    HG_TIMF2_STATUS     = 6,
+    HG_TIMF2_WK_INC     = 7,
+    HG_TIMF2_WK_DEC     = 8,
+    HG_TIMF2_ST_INC     = 9,
+    HG_TIMF2_ST_DEC     = 10,
+    HG_TIMF2_LINES      = 11,
+    HG_TIMF2_HOLD       = 12,
+    HG_FFT2_AVGNUM      = 13,
+    HG_SPECTRUM_ZERO    = 14,
+    HG_SPECTRUM_GAIN    = 15,
+    HG_SELLIM_PAR1      = 18,
+    HG_SELLIM_PAR2      = 19,
+    HG_SELLIM_PAR3      = 20,
+    HG_SELLIM_PAR4      = 21,
+    HG_SELLIM_PAR5      = 22,
+    HG_SELLIM_PAR6      = 23,
+    HG_SELLIM_PAR7      = 24,
+    HG_SELLIM_PAR8      = 25,
+    MAX_HGBUTT          = 26,
+};
 
 // Definitions for type BASEBAND_GRAPH
-#define BG_TOP 0
-#define BG_BOTTOM 1
-#define BG_LEFT 2
-#define BG_RIGHT 3
-#define BG_YSCALE_EXPAND 4
-#define BG_YSCALE_CONTRACT 5
-#define BG_YZERO_DECREASE 6
-#define BG_YZERO_INCREASE 7
-#define BG_RESOLUTION_DECREASE 8
-#define BG_RESOLUTION_INCREASE 9
-#define BG_OSCILLOSCOPE 10
-#define BG_OSC_INCREASE 11
-#define BG_OSC_DECREASE 12
-#define BG_PIX_PER_PNT_INC 13
-#define BG_PIX_PER_PNT_DEC 14
-#define BG_TOGGLE_EXPANDER 15
-#define BG_TOGGLE_COHERENT 16
-#define BG_TOGGLE_PHASING 17
-#define BG_TOGGLE_CHANNELS 18
-#define BG_TOGGLE_BYTES 19
-#define BG_TOGGLE_TWOPOL 20
-#define BG_SEL_COHFAC 21
-#define BG_SEL_DELPNTS 22
-#define BG_SEL_FFT3AVGNUM 23
-#define BG_TOGGLE_AGC 24
-#define BG_SEL_AGC_ATTACK 25
-#define BG_SEL_AGC_RELEASE 26
-#define BG_SEL_AGC_HANG 27
-#define BG_YBORDER 28
-#define BG_WATERF_ZERO 29
-#define BG_WATERF_GAIN 30
-#define BG_WATERF_AVGNUM 31
-#define BG_HORIZ_ARROW_MODE 32
-#define BG_MIXER_MODE 33
-#define BG_FILTER_SHIFT 34
-#define BG_NOTCH_NO 35
-#define BG_NOTCH_POS 36
-#define BG_NOTCH_WIDTH 37
-#define BG_TOGGLE_FM_MODE 38
-#define BG_TOGGLE_FM_SUBTRACT 39
-#define BG_SEL_FM_AUDIO_BW 40
-#define BG_TOGGLE_CH2_PHASE 41
-#define BG_SQUELCH_TIME 42
-#define BG_SQUELCH_POINT 43
-#define BG_SQUELCH_LEVEL 44
-
-#define MAX_BGBUTT 45
+enum BasebandGraphParameters {
+    BG_TOP                  = 0,
+    BG_BOTTOM               = 1,
+    BG_LEFT                 = 2,
+    BG_RIGHT                = 3,
+    BG_YSCALE_EXPAND        = 4,
+    BG_YSCALE_CONTRACT      = 5,
+    BG_YZERO_DECREASE       = 6,
+    BG_YZERO_INCREASE       = 7,
+    BG_RESOLUTION_DECREASE  = 8,
+    BG_RESOLUTION_INCREASE  = 9,
+    BG_OSCILLOSCOPE         = 10,
+    BG_OSC_INCREASE         = 11,
+    BG_OSC_DECREASE         = 12,
+    BG_PIX_PER_PNT_INC      = 13,
+    BG_PIX_PER_PNT_DEC      = 14,
+    BG_TOGGLE_EXPANDER      = 15,
+    BG_TOGGLE_COHERENT      = 16,
+    BG_TOGGLE_PHASING       = 17,
+    BG_TOGGLE_CHANNELS      = 18,
+    BG_TOGGLE_BYTES         = 19,
+    BG_TOGGLE_TWOPOL        = 20,
+    BG_SEL_COHFAC           = 21,
+    BG_SEL_DELPNTS          = 22,
+    BG_SEL_FFT3AVGNUM       = 23,
+    BG_TOGGLE_AGC           = 24,
+    BG_SEL_AGC_ATTACK       = 25,
+    BG_SEL_AGC_RELEASE      = 26,
+    BG_SEL_AGC_HANG         = 27,
+    BG_YBORDER              = 28,
+    BG_WATERF_ZERO          = 29,
+    BG_WATERF_GAIN          = 30,
+    BG_WATERF_AVGNUM        = 31,
+    BG_HORIZ_ARROW_MODE     = 32,
+    BG_MIXER_MODE           = 33,
+    BG_FILTER_SHIFT         = 34,
+    BG_NOTCH_NO             = 35,
+    BG_NOTCH_POS            = 36,
+    BG_NOTCH_WIDTH          = 37,
+    BG_TOGGLE_FM_MODE       = 38,
+    BG_TOGGLE_FM_SUBTRACT   = 39,
+    BG_SEL_FM_AUDIO_BW      = 40,
+    BG_TOGGLE_CH2_PHASE     = 41,
+    BG_SQUELCH_TIME         = 42,
+    BG_SQUELCH_POINT        = 43,
+    BG_SQUELCH_LEVEL        = 44,
+    MAX_BGBUTT              = 45,
+};
 
 #define MAX_BG_NOTCHES 9
 
 // Definitions for type AFC_GRAPH
-#define AG_TOP 0
-#define AG_BOTTOM 1
-#define AG_LEFT 2
-#define AG_RIGHT 3
-#define AG_FQSCALE_EXPAND 4
-#define AG_FQSCALE_CONTRACT 5
-#define AG_MANAUTO 6
-#define AG_WINTOGGLE 7
-#define AG_SEL_AVGNUM 8
-#define AG_SEL_FIT 9
-#define AG_SEL_DELAY 10
-#define MAX_AGBUTT 11
+enum AFCGraphParameters {
+    AG_TOP                  = 0,
+    AG_BOTTOM               = 1,
+    AG_LEFT                 = 2,
+    AG_RIGHT                = 3,
+    AG_FQSCALE_EXPAND       = 4,
+    AG_FQSCALE_CONTRACT     = 5,
+    AG_MANAUTO              = 6,
+    AG_WINTOGGLE            = 7,
+    AG_SEL_AVGNUM           = 8,
+    AG_SEL_FIT              = 9,
+    AG_SEL_DELAY            = 10,
+    MAX_AGBUTT              = 11,
+};
 
 // Definitions for type POL_GRAPH
-#define PG_TOP 0
-#define PG_BOTTOM 1
-#define PG_LEFT 2
-#define PG_RIGHT 3
-#define PG_ANGLE 4
-#define PG_CIRC 5
-#define PG_AUTO 6
-#define PG_AVGNUM 7
-#define MAX_PGBUTT 8
+enum PolGraphParameters {
+    PG_TOP                  = 0,
+    PG_BOTTOM               = 1,
+    PG_LEFT                 = 2,
+    PG_RIGHT                = 3,
+    PG_ANGLE                = 4,
+    PG_CIRC                 = 5,
+    PG_AUTO                 = 6,
+    PG_AVGNUM               = 7,
+    MAX_PGBUTT              = 8,
+};
 
 // Definitions for type PHASING_GRAPH
-#define XG_TOP 0
-#define XG_BOTTOM 1
-#define XG_LEFT 2
-#define XG_RIGHT 3
-#define XG_INCREASE_PAR1 4
-#define XG_DECREASE_PAR1 5
-#define XG_INCREASE_PAR2 6
-#define XG_DECREASE_PAR2 7
-#define XG_INCREASE_PAR1_F 8
-#define XG_DECREASE_PAR1_F 9
-#define XG_INCREASE_PAR2_F 10
-#define XG_DECREASE_PAR2_F 11
-#define XG_DO_A 12
-#define XG_DO_B 13
-#define XG_DO_C 14
-#define XG_DO_D 15
-#define XG_DO_1 16
-#define XG_DO_2 17
-#define XG_DO_3 18
-#define XG_COPY 19
-#define XG_MEM_1 20
-#define XG_MEM_2 21
-#define XG_MEM_3 22
-#define MAX_XGBUTT 23
-
-
+enum PhasingGraphParameters {
+    XG_TOP                  = 0,
+    XG_BOTTOM               = 1,
+    XG_LEFT                 = 2,
+    XG_RIGHT                = 3,
+    XG_INCREASE_PAR1        = 4,
+    XG_DECREASE_PAR1        = 5,
+    XG_INCREASE_PAR2        = 6,
+    XG_DECREASE_PAR2        = 7,
+    XG_INCREASE_PAR1_F      = 8,
+    XG_DECREASE_PAR1_F      = 9,
+    XG_INCREASE_PAR2_F      = 10,
+    XG_DECREASE_PAR2_F      = 11,
+    XG_DO_A                 = 12,
+    XG_DO_B                 = 13,
+    XG_DO_C                 = 14,
+    XG_DO_D                 = 15,
+    XG_DO_1                 = 16,
+    XG_DO_2                 = 17,
+    XG_DO_3                 = 18,
+    XG_COPY                 = 19,
+    XG_MEM_1                = 20,
+    XG_MEM_2                = 21,
+    XG_MEM_3                = 22,
+    MAX_XGBUTT              = 23,
+};
 
 // Definitions for type COH_GRAPH
-#define CG_TOP 0
-#define CG_BOTTOM 1
-#define CG_LEFT 2
-#define CG_RIGHT 3
-#define CG_OSCILLOSCOPE 4
-#define CG_METER_GRAPH 5
-#define MAX_CGBUTT 6
+enum CoherentGraphParameters {
+    CG_TOP                  = 0,
+    CG_BOTTOM               = 1,
+    CG_LEFT                 = 2,
+    CG_RIGHT                = 3,
+    CG_OSCILLOSCOPE         = 4,
+    CG_METER_GRAPH          = 5,
+    MAX_CGBUTT              = 6,
+};
 
 // Definitions for type AEME_GRAPH
-#define EG_TOP 0
-#define EG_BOTTOM 1
-#define EG_LEFT 2
-#define EG_RIGHT 3
-#define EG_MINIMISE 4
-#define EG_LOC 5
-#define EG_DX 6
-#define MAX_EGBUTT 7
+enum AEMEGraphParameters {
+    EG_TOP                  = 0,
+    EG_BOTTOM               = 1,
+    EG_LEFT                 = 2,
+    EG_RIGHT                = 3,
+    EG_MINIMISE             = 4,
+    EG_LOC                  = 5,
+    EG_DX                   = 6,
+    MAX_EGBUTT              = 7,
+};
 
 // Definitions for type FREQ_GRAPH
-#define FG_TOP 0
-#define FG_BOTTOM 1
-#define FG_LEFT 2
-#define FG_RIGHT 3
-#define FG_INCREASE_FQ 4
-#define FG_DECREASE_FQ 5
-#define FG_INCREASE_GAIN 6
-#define FG_DECREASE_GAIN 7
-#define MAX_FGBUTT 8
+enum FreqGraphParameters {
+    FG_TOP                  = 0,
+    FG_BOTTOM               = 1,
+    FG_LEFT                 = 2,
+    FG_RIGHT                = 3,
+    FG_INCREASE_FQ          = 4,
+    FG_DECREASE_FQ          = 5,
+    FG_INCREASE_GAIN        = 6,
+    FG_DECREASE_GAIN        = 7,
+    MAX_FGBUTT              = 8,
+};
 
 // Definitions for type (S)METER_GRAPH
-#define MG_TOP 0
-#define MG_BOTTOM 1
-#define MG_LEFT 2
-#define MG_RIGHT 3
-#define MG_INCREASE_AVGN 4
-#define MG_DECREASE_AVGN 5
-#define MG_INCREASE_GAIN 6
-#define MG_DECREASE_GAIN 7
-#define MG_INCREASE_YREF 8
-#define MG_DECREASE_YREF 9
-#define MG_CHANGE_CAL 10
-#define MG_CHANGE_TYPE 11
-#define MG_CHANGE_TRACKS 12
-#define MG_SCALE_STON_SIGSHIFT 13
-#define MAX_MGBUTT 14
+enum SMeterGraphParameters {
+    MG_TOP                  = 0,
+    MG_BOTTOM               = 1,
+    MG_LEFT                 = 2,
+    MG_RIGHT                = 3,
+    MG_INCREASE_AVGN        = 4,
+    MG_DECREASE_AVGN        = 5,
+    MG_INCREASE_GAIN        = 6,
+    MG_DECREASE_GAIN        = 7,
+    MG_INCREASE_YREF        = 8,
+    MG_DECREASE_YREF        = 9,
+    MG_CHANGE_CAL           = 10,
+    MG_CHANGE_TYPE          = 11,
+    MG_CHANGE_TRACKS        = 12,
+    MG_SCALE_STON_SIGSHIFT  = 13,
+    MAX_MGBUTT              = 14,
+};
 
 // Definitions for type TRANSMIT_GRAPH
-
-#define TG_TOP 0
-#define TG_BOTTOM 1
-#define TG_LEFT 2
-#define TG_RIGHT 3
-#define TG_INCREASE_FQ 4
-#define TG_DECREASE_FQ 5
-#define TG_CHANGE_TXPAR_FILE_NO 6
-#define TG_NEW_TX_FREQUENCY 7
-#define TG_SET_SIGNAL_LEVEL 8
-#define TG_ONOFF 9
-#define TG_MUTE_ON 11
-#define TG_MUTE_OFF 12
-#define MAX_TGBUTT 13
+enum TransmitGraphParameters {
+    TG_TOP                  = 0,
+    TG_BOTTOM               = 1,
+    TG_LEFT                 = 2,
+    TG_RIGHT                = 3,
+    TG_INCREASE_FQ          = 4,
+    TG_DECREASE_FQ          = 5,
+    TG_CHANGE_TXPAR_FILE_NO = 6,
+    TG_NEW_TX_FREQUENCY     = 7,
+    TG_SET_SIGNAL_LEVEL     = 8,
+    TG_ONOFF                = 9,
+    TG_MUTE_ON              = 11,
+    TG_MUTE_OFF             = 12,
+    MAX_TGBUTT              = 13,
+};
 
 // Structure for the eme database.
 #define CALLSIGN_CHARS 12
