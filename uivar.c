@@ -155,8 +155,6 @@ int mouse_lbutton_x;
 int mouse_rbutton_x;
 int mouse_lbutton_y;
 int mouse_rbutton_y;
-int mmx_present;
-int simd_present;
 int rx_audio_in;
 int rx_audio_in2;
 int rx_audio_out;
@@ -202,9 +200,6 @@ int current_graph_minh;
 int current_graph_minw;
 int calibrate_flag;
 double old_passband_center;
-int swmmx_fft1;
-int swmmx_fft2;
-int swfloat;
 int sw_onechan;
 size_t memalloc_no;
 size_t memalloc_max;
@@ -327,7 +322,7 @@ int genparm_default[MAX_RX_MODE][MAX_GENPARM]= {
     { 85,2,0,0, 1,D, 0,0,0,0,K, 6, 2,2,0, 7, 5,0,150,A1,0,0,5, 4,1,2, 2,500, P, 1,3, 0},
 };
 
-char *genparm_text[MAX_GENPARM+2]= {"First FFT bandwidth (Hz)",         //0
+char *genparm_text[MAX_GENPARM+2]= {"First FFT bandwidth (Hz)",                       //0
                                     "First FFT window (power of sin)",                //1
                                     "First forward FFT version",                      //2
                                     "First FFT no of b threads",                      //3
@@ -363,7 +358,7 @@ char *genparm_text[MAX_GENPARM+2]= {"First FFT bandwidth (Hz)",         //0
                                     "Check"
                                    };
 
-
+// Boolean table marking the receiver parameters to be modified by a newcomer.
 char newco_genparm[MAX_GENPARM]= {1, //First FFT bandwidth (Hz)            0
                                   0, //First FFT window (power of sin)     1
                                   0, //First forward FFT version           2

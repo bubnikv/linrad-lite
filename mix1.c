@@ -574,13 +574,8 @@ void fft2_mix1_afc(void)
             ia=0;
             if(ia < nn*fft1_first_point-kk)ia=nn*fft1_first_point-kk;
             for(i=0; i<ia; i++)fftn_tmp[i]=0;
-            if(fft_cntrl[FFT2_CURMODE].mmx == 0) {
-                z=&fft2_float[kk+mm*fft2_nx*fft2_size];
-                for(i=ia; i<ib; i++)fftn_tmp[i]=z[i];
-            } else {
-                zxy=&fft2_short_int[kk+mm*fft2_nx*fft2_size];
-                for(i=ia; i<ib; i++)fftn_tmp[i]=zxy[i];
-            }
+            z=&fft2_float[kk+mm*fft2_nx*fft2_size];
+            for(i=ia; i<ib; i++)fftn_tmp[i]=z[i];
             for(i=ib; i<n+1; i++)fftn_tmp[i]=0;
             kk-=n2;
             ib=n;
@@ -588,13 +583,8 @@ void fft2_mix1_afc(void)
             for(i=n+1; i<ib; i++)fftn_tmp[i]=0;
             ic=n2;
             if(ic > nn*fft1_last_point-kk)ic=nn*fft1_last_point-kk;
-            if(fft_cntrl[FFT2_CURMODE].mmx == 0) {
-                z=&fft2_float[kk+mm*fft2_nx*fft2_size];
-                for(i=ib; i<ic; i++)fftn_tmp[i]=z[i];
-            } else {
-                zxy=&fft2_short_int[kk+mm*fft2_nx*fft2_size];
-                for(i=ib; i<ic; i++)fftn_tmp[i]=zxy[i];
-            }
+            z=&fft2_float[kk+mm*fft2_nx*fft2_size];
+            for(i=ib; i<ic; i++)fftn_tmp[i]=z[i];
             for(i=ic; i<n2; i++)fftn_tmp[i]=0;
             do_mix1_afc(ss);
         } else {
@@ -628,25 +618,15 @@ void fft2_mix1_fixed(void)
             ib=n;
             if(ib > nn*fft1_last_point-k)ib=nn*fft1_last_point-k;
             if(ib < 0) ib=0;
-            if(fft_cntrl[FFT2_CURMODE].mmx == 0) {
-                z=&fft2_float[k+mm*fft2_nx*fft2_size];
-                for(i=0; i<ib; i++)fftn_tmp[i]=z[i];
-            } else {
-                zxy=&fft2_short_int[k+mm*fft2_nx*fft2_size];
-                for(i=0; i<ib; i++)fftn_tmp[i]=zxy[i];
-            }
+            z=&fft2_float[k+mm*fft2_nx*fft2_size];
+            for(i=0; i<ib; i++)fftn_tmp[i]=z[i];    
             for(i=ib; i<n; i++)fftn_tmp[i]=0;
             k-=n2;
             ib=n;
             if(ib < nn*fft1_first_point-k)ib=nn*fft1_first_point-k;
             for(i=n; i<ib; i++)fftn_tmp[i]=0;
-            if(fft_cntrl[FFT2_CURMODE].mmx == 0) {
-                z=&fft2_float[k+mm*fft2_nx*fft2_size];
-                for(i=ib; i<n2; i++)fftn_tmp[i]=z[i];
-            } else {
-                zxy=&fft2_short_int[k+mm*fft2_nx*fft2_size];
-                for(i=ib; i<n2; i++)fftn_tmp[i]=zxy[i];
-            }
+            z=&fft2_float[k+mm*fft2_nx*fft2_size];
+            for(i=ib; i<n2; i++)fftn_tmp[i]=z[i];  
             do_mix1(ss,0);
         } else {
             mix1_clear(ss);

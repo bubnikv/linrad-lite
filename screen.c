@@ -727,16 +727,7 @@ clever_ok:
 stupid_ok:
         ;
     }
-    settextcolor(7);
-    if(timf2_ovfl != 0) {
-        sprintf(s,"OVFL %d",timf2_ovfl);
-        i=6;
-        while(s[i] != 0)i++;
-        lir_pixwrite(timf2_hg_xmax-text_width*i,hg.ybottom-text_height,s);
-    }
 }
-
-
 
 void show_ag_buttons(void)
 {
@@ -1036,19 +1027,11 @@ void show_timf2(void)
     p0=(mm*(timf2_show_pointer-screen_width/8)+timf2_mask+1)&timf2_mask;
     while( ka<kb) {
         if(ui.rx_rf_channels==1) {
-            if(swfloat) {
-                timf2pix[ka  ]=timf2_y0[3]-timf2_float[p0  ]*wkg;
-                timf2pix[ka+1]=timf2_y0[2]-timf2_float[p0+1]*wkg;
-                timf2pix[ka+2]=timf2_y0[1]-timf2_float[p0+2]*stg;
-                timf2pix[ka+3]=timf2_y0[0]-timf2_float[p0+3]*stg;
-                timf2pix[ka+4]=timf2_y0[4]-sqrt(timf2_pwr_float[p0>>2])*wkg;
-            } else {
-                timf2pix[ka  ]=timf2_y0[3]-timf2_shi[p0  ]*wkg;
-                timf2pix[ka+1]=timf2_y0[2]-timf2_shi[p0+1]*wkg;
-                timf2pix[ka+2]=timf2_y0[1]-timf2_shi[p0+2]*stg;
-                timf2pix[ka+3]=timf2_y0[0]-timf2_shi[p0+3]*stg;
-                timf2pix[ka+4]=timf2_y0[4]-sqrt((float)(timf2_pwr_int[p0>>2]))*wkg;
-            }
+            timf2pix[ka  ]=timf2_y0[3]-timf2_float[p0  ]*wkg;
+            timf2pix[ka+1]=timf2_y0[2]-timf2_float[p0+1]*wkg;
+            timf2pix[ka+2]=timf2_y0[1]-timf2_float[p0+2]*stg;
+            timf2pix[ka+3]=timf2_y0[0]-timf2_float[p0+3]*stg;
+            timf2pix[ka+4]=timf2_y0[4]-sqrt(timf2_pwr_float[p0>>2])*wkg;
             if(timf2pix[ka]<timf2_ymin[3])timf2pix[ka]=timf2_ymin[3];
             if(timf2pix[ka]>timf2_ymax[3])timf2pix[ka]=timf2_ymax[3];
             if(timf2pix[ka+1]<timf2_ymin[2])timf2pix[ka+1]=timf2_ymin[2];
@@ -1058,27 +1041,15 @@ void show_timf2(void)
             if(timf2pix[ka+3]<timf2_ymin[0])timf2pix[ka+3]=timf2_ymin[0];
             if(timf2pix[ka+3]>timf2_ymax[0])timf2pix[ka+3]=timf2_ymax[0];
         } else {
-            if(swfloat) {
-                timf2pix[ka  ]=timf2_y0[7]-timf2_float[p0  ]*wkg;
-                timf2pix[ka+1]=timf2_y0[6]-timf2_float[p0+1]*wkg;
-                timf2pix[ka+2]=timf2_y0[5]-timf2_float[p0+2]*wkg;
-                timf2pix[ka+3]=timf2_y0[4]-timf2_float[p0+3]*wkg;
-                timf2pix[ka+4]=timf2_y0[3]-timf2_float[p0+4]*stg;
-                timf2pix[ka+5]=timf2_y0[2]-timf2_float[p0+5]*stg;
-                timf2pix[ka+6]=timf2_y0[1]-timf2_float[p0+6]*stg;
-                timf2pix[ka+7]=timf2_y0[0]-timf2_float[p0+7]*stg;
-                timf2pix[ka+8]=timf2_y0[8]-sqrt(timf2_pwr_float[p0>>3])*wkg;
-            } else {
-                timf2pix[ka  ]=timf2_y0[7]-timf2_shi[p0  ]*wkg;
-                timf2pix[ka+1]=timf2_y0[6]-timf2_shi[p0+1]*wkg;
-                timf2pix[ka+2]=timf2_y0[5]-timf2_shi[p0+2]*wkg;
-                timf2pix[ka+3]=timf2_y0[4]-timf2_shi[p0+3]*wkg;
-                timf2pix[ka+4]=timf2_y0[3]-timf2_shi[p0+4]*stg;
-                timf2pix[ka+5]=timf2_y0[2]-timf2_shi[p0+5]*stg;
-                timf2pix[ka+6]=timf2_y0[1]-timf2_shi[p0+6]*stg;
-                timf2pix[ka+7]=timf2_y0[0]-timf2_shi[p0+7]*stg;
-                timf2pix[ka+8]=timf2_y0[8]-sqrt((float)(timf2_pwr_int[p0>>3]))*wkg;
-            }
+            timf2pix[ka  ]=timf2_y0[7]-timf2_float[p0  ]*wkg;
+            timf2pix[ka+1]=timf2_y0[6]-timf2_float[p0+1]*wkg;
+            timf2pix[ka+2]=timf2_y0[5]-timf2_float[p0+2]*wkg;
+            timf2pix[ka+3]=timf2_y0[4]-timf2_float[p0+3]*wkg;
+            timf2pix[ka+4]=timf2_y0[3]-timf2_float[p0+4]*stg;
+            timf2pix[ka+5]=timf2_y0[2]-timf2_float[p0+5]*stg;
+            timf2pix[ka+6]=timf2_y0[1]-timf2_float[p0+6]*stg;
+            timf2pix[ka+7]=timf2_y0[0]-timf2_float[p0+7]*stg;
+            timf2pix[ka+8]=timf2_y0[8]-sqrt(timf2_pwr_float[p0>>3])*wkg;
             if(timf2pix[ka]<timf2_ymin[7])timf2pix[ka]=timf2_ymin[7];
             if(timf2pix[ka]>timf2_ymax[7])timf2pix[ka]=timf2_ymax[7];
             if(timf2pix[ka+1]<timf2_ymin[6])timf2pix[ka+1]=timf2_ymin[6];
@@ -1149,9 +1120,6 @@ void show_timf2(void)
             ka+=m;
         }
     }
-    if(swfloat)return;
-    if(timf2_oscilloscope_maxval_uint < 65530)return;
-    timf2_ovfl++;
 }
 
 void show_wg_buttons(int all)

@@ -247,7 +247,6 @@ extern int timf1p_sdr;
 
 extern float timf1_sampling_speed;
 
-extern short int *timf2_shi;
 extern float *timf2_float;
 extern float *timf2_blockpower;
 extern int timf2_blockpower_block;
@@ -271,7 +270,6 @@ extern int timf2_output_block;
 extern int timf2_oscilloscope_counter;
 extern int timf2_oscilloscope_interval;
 extern int timf2_oscilloscope_maxpoint;
-extern int timf2_ovfl;
 extern int timf2_fitted_pulses;
 extern int timf2_cleared_points;
 extern int timf2_blanker_points;
@@ -311,15 +309,6 @@ extern int txtest_first_point;
 extern int txtest_show_p0;
 extern float txtest_yfac;
 
-
-void simd1_16_win(int timf1p_ref, float *out);
-void simd1_16_nowin(int timf1p_ref, float *out);
-void simd1_32_win(int timf1p_ref, float *out);
-void simd1_32_nowin(int timf1p_ref, float *out);
-void simd1_16_win_real(int timf1p_ref, float *out);
-void simd1_16_nowin_real(int timf1p_ref, float *out);
-void simd1_32_win_real(int timf1p_ref, float *out);
-void simd1_32_nowin_real(int timf1p_ref, float *out);
 void fft1_update_liminfo(void);
 void fft1_approx_dif_two(void);
 void fft1_approx_dif_one(void);
@@ -330,12 +319,7 @@ void fft1_reherm_dit_two(int timf1p_ref, float *out, float *tmp);
 void fft1_complex_two(void);
 void make_timf2(void);
 void show_timf2(void);
-void mmx_fft1back_two(void);
-void mmx_fft1back_one(void);
-void fft1back_one(void);
-void fft1back_two(void);
 void fft1back_fp_finish(void);
-void fft1back_mmx_finish(void);
 void fft1_mix1_fixed(void);
 void fft1_mix1_afc(void);
 void fft1_waterfall(void);

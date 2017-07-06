@@ -181,10 +181,6 @@ void print_procerr(int xxprint)
             i=1;
             printf("\nMMX supported by hardware");
         }
-        if( (xxprint&4)==0 && simd_present != 0) {
-            i=1;
-            printf("\nSIMD (=sse) supported by hardware");
-        }
         if(i!=0) {
             printf("\n/proc/cpuinfo says LINUX core is not compatible.");
             printf("\n\nLinrad will allow you to select routines that may be illegal");
@@ -195,17 +191,6 @@ void print_procerr(int xxprint)
             printf("\nwith appropriate patches.\n\n");
         }
     }
-}
-
-void mmxerr(void)
-{
-    printf("\n\nCould not read file /proc/cpuinfo (flags:)");
-    printf("\nSetting MMX and SIMD flags from hardware");
-    printf("\nProgram may fail if kernel support is missing and modes");
-    printf("\nneeding MMX or SIMD are selected.");
-    printf("\n\n%s",press_enter);
-    fflush(stdout);
-    getchar();
 }
 
 int investigate_cpu(void)
@@ -226,16 +211,6 @@ int investigate_cpu(void)
 // If there is no mmx, do not use simd either.
     tickspersec = sysconf(_SC_CLK_TCK);
     xxprint=0;
-#if CPU == CPU_INTEL
-// We do not use assembly on 64 bit systems (yet??)
-    i=0;
-    i=2; // simd is OK, but not MMX.
-    mmx_present=i&1;
-    simd_present=i>>1;
-#else
-    mmx_present=0;
-    simd_present=0;
-#endif
 #if TRUE_BSD == TRUE
     size_t len=sizeof(no_of_processors);
     int err;
@@ -257,9 +232,6 @@ nxline:
         if(fgets(s,256,file)==NULL) {
             if(no_of_processors>0)goto cpuinfo_ok;
             fclose(file);
-#if CPU == CPU_INTEL
-            mmxerr();
-#endif
             no_of_processors=1;
             return 0;
         } else {

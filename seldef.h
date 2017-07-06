@@ -54,7 +54,6 @@ extern TWOCHAN_POWER *fftx_xypower;
 extern int ffts_na;
 extern int ffts_nm;
 extern float *spur_table;
-extern short int *spur_table_mmx;
 extern int *spur_location;
 extern int *spur_flag;
 extern float *spur_power;

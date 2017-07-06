@@ -536,80 +536,52 @@ void check_output_no_of_channels(void)
     genparm[OUTPUT_MODE]|=i<<1;
 }
 
-void fix_limits(int *k, int *m, int parnum)
+void fix_limits(int *out_max, int *out_min, int parnum)
 {
     int i;
-    k[0]=genparm_max[parnum];
-    m[0]=genparm_min[parnum];
-    if(parnum == FIRST_FFT_VERNR) {
-        k[0]=0;
+    *out_max = genparm_max[parnum];
+    *out_min = genparm_min[parnum];
+    switch (parnum) {
+    case FIRST_FFT_VERNR:
         fft1mode=(ui.rx_input_mode&(TWO_CHANNELS+IQ_DATA))/2;
-        while( fft1_version[fft1mode][k[0]+1] >= 0 &&
-                k[0] < MAX_FFT1_VERNR-1)k[0]++;
-        if(simd_present == 0) {
-            while( fft_cntrl[fft1_version[fft1mode][k[0]]].simd != 0)k[0]--;
-        }
-        if(mmx_present == 0) {
-            while( fft_cntrl[fft1_version[fft1mode][k[0]]].mmx != 0)k[0]--;
-        }
+        for (i = 0; fft1_version[fft1mode][i+1] >= 0 && i+1 < MAX_FFT1_VERNR; ++ i);
+        *out_max = i;
+        break;
+	case FIRST_BCKFFT_VERNR:
+        for (i=0; fft1_back_version[ui.rx_rf_channels-1][i+1] > 0 && i+1 < MAX_FFT1_BCKVERNR; ++ i);
+        *out_max = i;
+        break;
+    case FIRST_BCKFFT_ATT_N:
+        *out_max = (fft1_n-4) & 0xfffe;
+        break;
+    case SECOND_FFT_ATT_N:
+        *out_max = fft2_n - 2;
+        break;
+    case SECOND_FFT_VERNR:
+        for (i = 0; fft2_version[ui.rx_rf_channels-1][i+1] > 0 && i+1 < MAX_FFT2_VERNR; ++ i);
+        *out_max = i;
+        break;
+    case MIX1_BANDWIDTH_REDUCTION_N:
+        *out_max=(genparm[SECOND_FFT_ENABLE] ? fft2_n : fft1_n) - 3;
+        break;
+    case DA_OUTPUT_SPEED:
+        *out_min = ui.rx_min_da_speed;
+        *out_max = ui.rx_max_da_speed;
+        break;
+    case MAX_NO_OF_SPURS:
+        *out_max = genparm[AFC_ENABLE] ?
+            2 * (genparm[SECOND_FFT_ENABLE] ? fft2_size : fft1_size) / SPUR_WIDTH :
+            0;
+        break;
+    case SPUR_TIMECONSTANT:
+        *out_max = 5 * genparm[genparm[SECOND_FFT_ENABLE] ? FFT2_STORAGE_TIME : FFT1_STORAGE_TIME];
+        break;
     }
-    if(parnum == FIRST_BCKFFT_VERNR) {
-        i=0;
-        while(fft1_back_version[ui.rx_rf_channels-1][i+1] > 0 &&
-                i < MAX_FFT1_BCKVERNR-1)i++;
-        if(mmx_present == 0) {
-            while(i > 0 && fft_cntrl[fft1_back_version[ui.rx_rf_channels-1][i]].mmx != 0)i--;
-        }
-        k[0]=i;
-    }
-    if(parnum == FIRST_BCKFFT_ATT_N) {
-        k[0]=(fft1_n-4)&0xfffe;
-    }
-    if(parnum == SECOND_FFT_ATT_N) {
-        k[0]=fft2_n-2;
-    }
-    if(parnum == SECOND_FFT_VERNR) {
-        i=0;
-        while( fft2_version[ui.rx_rf_channels-1][i+1] > 0 &&
-                i < MAX_FFT2_VERNR-1)i++;
-        if(mmx_present == 0) {
-            while(i > 0 && fft_cntrl[fft2_version[ui.rx_rf_channels-1][i]].mmx != 0)i--;
-        }
-        k[0]=i;
-    }
-    if(parnum == MIX1_BANDWIDTH_REDUCTION_N) {
-        if(genparm[SECOND_FFT_ENABLE] == 0) {
-            k[0]=fft1_n-3;
-        } else {
-            k[0]=fft2_n-3;
-        }
-    }
-    if(parnum == DA_OUTPUT_SPEED) {
-        m[0]=ui.rx_min_da_speed;
-        k[0]=ui.rx_max_da_speed;
-    }
-    if(parnum == MAX_NO_OF_SPURS) {
-        if(genparm[AFC_ENABLE]==0) {
-            k[0]=0;
-        } else {
-            if(genparm[SECOND_FFT_ENABLE] == 0) {
-                k[0]=2*fft1_size/SPUR_WIDTH;
-            } else {
-                k[0]=2*fft2_size/SPUR_WIDTH;
-            }
-        }
-    }
-    if(parnum == SPUR_TIMECONSTANT) {
-        if(genparm[SECOND_FFT_ENABLE] == 0) {
-            k[0]=5*genparm[FFT1_STORAGE_TIME];
-        } else {
-            k[0]=5*genparm[FFT2_STORAGE_TIME];
-        }
-    }
-// In case fft sizes are not set.
-    if(k[0] < m[0] || m[0]<genparm_min[parnum] || k[0]>genparm_max[parnum]) {
-        k[0]=genparm_max[parnum];
-        m[0]=genparm_min[parnum];
+
+    // In case fft sizes are not set.
+    if(*out_max < *out_min || *out_min < genparm_min[parnum] || *out_max > genparm_max[parnum]) {
+        *out_max = genparm_max[parnum];
+        *out_min = genparm_min[parnum];
     }
 }
 
@@ -1509,40 +1481,16 @@ illegal_value:
             prompt_reason("FFT1 version incompatible with A/D mode");
             goto iniparm;
         }
-        if(simd_present == 0) {
-            if( fft_cntrl[i].simd != 0) {
-                prompt_reason("Parameters say use SIMD - not supported by computer!");
-                goto iniparm;
-            }
-        }
         if(genparm[SECOND_FFT_ENABLE] != 0) {
-            if(mmx_present == 0) {
-                if( fft_cntrl[i].mmx != 0) {
-nommx:
-                    ;
-#if IA64 == 0
-                    prompt_reason("Parameters say use MMX - not supported by computer!");
-#else
-                    prompt_reason("Parameters say use MMX - not (yet?) supported on IA64!");
-#endif
-                    goto iniparm;
-                }
-            }
             i=fft1_back_version[ui.rx_rf_channels-1][genparm[FIRST_BCKFFT_VERNR]];
             if( i < 0 || i>=MAX_FFT_VERSIONS) {
                 prompt_reason("Backwards FFT1 version incompatible with no of channels");
                 goto iniparm;
             }
-            if(mmx_present == 0) {
-                if( fft_cntrl[i].mmx != 0)goto nommx;
-            }
             i=fft2_version[ui.rx_rf_channels-1][genparm[SECOND_FFT_VERNR]];
             if( i < 0 || i>=MAX_FFT_VERSIONS) {
                 prompt_reason("FFT2 version incompatible with no of channels");
                 goto iniparm;
-            }
-            if(mmx_present == 0) {
-                if( fft_cntrl[i].mmx != 0)goto nommx;
             }
 // Make sure fft1_n and fft2_n are defined.
             get_wideband_sizes();

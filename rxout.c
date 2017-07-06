@@ -571,7 +571,6 @@ void make_audio_signal(void)
     float a1, a2, b1, b2, u1, u2;
     double dt1;
     short int *intvar;
-    short int *ntbuf;
     float r1,r2,r3,r4;
     float rdiff, final_gain1, final_gain2;
     float baseb_r1, baseb_r2;

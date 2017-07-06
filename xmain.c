@@ -1197,8 +1197,6 @@ void ui_setup(void)
     xxprint=investigate_cpu();
 #else
     xxprint=0;
-    simd_present=0;
-    mmx_present=0;
     no_of_processors=1;
 #endif
     file = fopen(userint_filename, "rb");
@@ -1340,8 +1338,6 @@ int lmain(void)
     xxprint=investigate_cpu();
 #else
     xxprint=0;
-    simd_present=0;
-    mmx_present=0;
     no_of_processors=1;
 #endif
     file = fopen(userint_filename, "rb");
@@ -1541,8 +1537,6 @@ int fmain(void)
     xxprint=investigate_cpu();
 #else
     xxprint=0;
-    simd_present=0;
-    mmx_present=0;
     no_of_processors=1;
 #endif
     file = fopen(userint_filename, "rb");

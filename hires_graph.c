@@ -55,7 +55,6 @@ void new_hg_pol(void)
     int i, j, j_last;
     int ib,k;
     float t1,t2,t3,t4,r1,r2;
-    short int *zxy;
     ib=hg_last_point;
     k=2*hg_size;
     for(i=0; i<k; i++) hg_fft2_pwrsum[i]=0;
@@ -65,40 +64,21 @@ nwpol:
     ;
     pwr=&hg_fft2_pwr[2*j*hg_size];
     k=0;
-    if(fft_cntrl[FFT2_CURMODE].mmx == 0) {
-        fftxy=&fft2_float[twice_rxchan*j*fft2_size];
-        for(i=hg_first_point; i<ib; i++) {
-            t1=fftxy[4*i  ];
-            t2=fftxy[4*i+1];
-            t3=fftxy[4*i+2];
-            t4=fftxy[4*i+3];
-            r1=pg.c1*t1+pg.c2*t3+pg.c3*t4;
-            r2=pg.c1*t2+pg.c2*t4-pg.c3*t3;
-            pwr[2*k  ]=r1*r1+r2*r2;
-            hg_fft2_pwrsum[2*k  ]+=pwr[2*k  ];
-            r1=pg.c1*t3-pg.c2*t1+pg.c3*t2;
-            r2=pg.c1*t4-pg.c2*t2-pg.c3*t1;
-            pwr[2*k+1]=r1*r1+r2*r2;
-            hg_fft2_pwrsum[2*k+1]+=pwr[2*k+1];
-            k++;
-        }
-    } else {
-        zxy=&fft2_short_int[twice_rxchan*j*fft2_size];
-        for(i=hg_first_point; i<ib; i++) {
-            t1=zxy[4*i  ];
-            t2=zxy[4*i+1];
-            t3=zxy[4*i+2];
-            t4=zxy[4*i+3];
-            r1=pg.c1*t1+pg.c2*t3+pg.c3*t4;
-            r2=pg.c1*t2+pg.c2*t4-pg.c3*t3;
-            pwr[2*k  ]=r1*r1+r2*r2;
-            hg_fft2_pwrsum[2*k  ]+=pwr[2*k  ];
-            r1=pg.c1*t3-pg.c2*t1+pg.c3*t2;
-            r2=pg.c1*t4-pg.c2*t2-pg.c3*t1;
-            pwr[2*k+1]=r1*r1+r2*r2;
-            hg_fft2_pwrsum[2*k+1]+=pwr[2*k+1];
-            k++;
-        }
+    fftxy=&fft2_float[twice_rxchan*j*fft2_size];
+    for(i=hg_first_point; i<ib; i++) {
+        t1=fftxy[4*i  ];
+        t2=fftxy[4*i+1];
+        t3=fftxy[4*i+2];
+        t4=fftxy[4*i+3];
+        r1=pg.c1*t1+pg.c2*t3+pg.c3*t4;
+        r2=pg.c1*t2+pg.c2*t4-pg.c3*t3;
+        pwr[2*k  ]=r1*r1+r2*r2;
+        hg_fft2_pwrsum[2*k  ]+=pwr[2*k  ];
+        r1=pg.c1*t3-pg.c2*t1+pg.c3*t2;
+        r2=pg.c1*t4-pg.c2*t2-pg.c3*t1;
+        pwr[2*k+1]=r1*r1+r2*r2;
+        hg_fft2_pwrsum[2*k+1]+=pwr[2*k+1];
+        k++;
     }
     if(j==j_last)return;
     j=(j+1)&fft2n_mask;

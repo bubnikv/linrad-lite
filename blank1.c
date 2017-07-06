@@ -38,7 +38,6 @@ float subtract_onechan_pulse(int p_max, int sub_size)
     int i, j, k, m, wid, imax;
     float t1,t2,t3,t4,t5,t6;
     float blanker_phase_c1,blanker_phase_c2;
-    int re_x_int, im_x_int;
     float re_x_float, im_x_float;
     float retval;
 // **************************
@@ -50,34 +49,18 @@ float subtract_onechan_pulse(int p_max, int sub_size)
     pa=(4*(p_max-blanker_pulsewidth)+mask)&mask;
     pb=(4*(p_max+blanker_pulsewidth) )&mask;
     i=0;
-    if(swfloat) {
-        while(pa != pb) {
-            pa=(pa+4)&mask;
-            t1=timf2_float[pa  ];
-            t2=timf2_float[pa+1];
-            t3=blanker_phasefunc[k  ];
-            t4=blanker_phasefunc[k+1];
-            t5=t1*t3+t2*t4;
-            k+=2;
-            t6=t2*t3-t1*t4;
-            blanker_input[i  ]=t5;
-            blanker_input[i+1]=t6;
-            i+=2;
-        }
-    } else {
-        while(pa != pb) {
-            pa=(pa+4)&mask;
-            t1=timf2_shi[pa  ];
-            t2=timf2_shi[pa+1];
-            t3=blanker_phasefunc[k  ];
-            t4=blanker_phasefunc[k+1];
-            t5=t1*t3+t2*t4;
-            k+=2;
-            t6=t2*t3-t1*t4;
-            blanker_input[i  ]=t5;
-            blanker_input[i+1]=t6;
-            i+=2;
-        }
+    while(pa != pb) {
+        pa=(pa+4)&mask;
+        t1=timf2_float[pa  ];
+        t2=timf2_float[pa+1];
+        t3=blanker_phasefunc[k  ];
+        t4=blanker_phasefunc[k+1];
+        t5=t1*t3+t2*t4;
+        k+=2;
+        t6=t2*t3-t1*t4;
+        blanker_input[i  ]=t5;
+        blanker_input[i+1]=t6;
+        i+=2;
     }
 // Collect the power averaged phase of the 3 center points.
     imax=blanker_pulsewidth;
@@ -140,36 +123,19 @@ float subtract_onechan_pulse(int p_max, int sub_size)
 // Collect new and old total power.
     t3=0;
     t4=0;
-    if(swfloat) {
-        while(p0 != pb) {
-            p0=(p0+4)&mask;
-            t1=blanker_refpulse[m+k];
-            t2=blanker_refpulse[m+k+1];
-            re_x_float=timf2_float[p0  ]-blanker_phase_c1*t1+blanker_phase_c2*t2;
-            im_x_float=timf2_float[p0+1]-blanker_phase_c1*t2-blanker_phase_c2*t1;
-            timf2_float[p0  ]=re_x_float;
-            timf2_float[p0+1]=im_x_float;
-            t1=re_x_float*re_x_float+im_x_float*im_x_float;
-            t3+=timf2_pwr_float[p0>>2];
-            timf2_pwr_float[p0>>2]=t1;
-            k+=2;
-            t4+=t1;
-        }
-    } else {
-        while(p0 != pb) {
-            p0=(p0+4)&mask;
-            t1=blanker_refpulse[m+k];
-            t2=blanker_refpulse[m+k+1];
-            re_x_int=timf2_shi[p0  ]-blanker_phase_c1*t1+blanker_phase_c2*t2;
-            im_x_int=timf2_shi[p0+1]-blanker_phase_c1*t2-blanker_phase_c2*t1;
-            timf2_shi[p0  ]=re_x_int;
-            timf2_shi[p0+1]=im_x_int;
-            j=re_x_int*re_x_int+im_x_int*im_x_int;
-            t3+=timf2_pwr_int[p0>>2];
-            timf2_pwr_int[p0>>2]=j;
-            k+=2;
-            t4+=j;
-        }
+    while(p0 != pb) {
+        p0=(p0+4)&mask;
+        t1=blanker_refpulse[m+k];
+        t2=blanker_refpulse[m+k+1];
+        re_x_float=timf2_float[p0  ]-blanker_phase_c1*t1+blanker_phase_c2*t2;
+        im_x_float=timf2_float[p0+1]-blanker_phase_c1*t2-blanker_phase_c2*t1;
+        timf2_float[p0  ]=re_x_float;
+        timf2_float[p0+1]=im_x_float;
+        t1=re_x_float*re_x_float+im_x_float*im_x_float;
+        t3+=timf2_pwr_float[p0>>2];
+        timf2_pwr_float[p0>>2]=t1;
+        k+=2;
+        t4+=t1;
     }
     retval=t4/t3;
     if(retval > 0.5) {
@@ -177,30 +143,16 @@ float subtract_onechan_pulse(int p_max, int sub_size)
 // Restore original data and report failure.
         p0=(4*(p_max-sub_size/2)+mask)&mask;
         k=refpul_size-sub_size;
-        if(swfloat) {
-            while(p0 != pb) {
-                p0=(p0+4)&mask;
-                t1=blanker_refpulse[m+k];
-                t2=blanker_refpulse[m+k+1];
-                re_x_float=timf2_float[p0  ]+blanker_phase_c1*t1+blanker_phase_c2*t2;
-                im_x_float=timf2_float[p0+1]+blanker_phase_c1*t2-blanker_phase_c2*t1;
-                timf2_float[p0  ]=re_x_float;
-                timf2_float[p0+1]=im_x_float;
-                timf2_pwr_float[p0>>2]=re_x_float*re_x_float+im_x_float*im_x_float;
-                k+=2;
-            }
-        } else {
-            while(p0 != pb) {
-                p0=(p0+4)&mask;
-                t1=blanker_refpulse[m+k];
-                t2=blanker_refpulse[m+k+1];
-                re_x_int=timf2_shi[p0  ]+blanker_phase_c1*t1+blanker_phase_c2*t2;
-                im_x_int=timf2_shi[p0+1]+blanker_phase_c1*t2-blanker_phase_c2*t1;
-                timf2_shi[p0  ]=re_x_int;
-                timf2_shi[p0+1]=im_x_int;
-                timf2_pwr_int[p0>>2]=re_x_int*re_x_int+im_x_int*im_x_int;
-                k+=2;
-            }
+        while(p0 != pb) {
+            p0=(p0+4)&mask;
+            t1=blanker_refpulse[m+k];
+            t2=blanker_refpulse[m+k+1];
+            re_x_float=timf2_float[p0  ]+blanker_phase_c1*t1+blanker_phase_c2*t2;
+            im_x_float=timf2_float[p0+1]+blanker_phase_c1*t2-blanker_phase_c2*t1;
+            timf2_float[p0  ]=re_x_float;
+            timf2_float[p0+1]=im_x_float;
+            timf2_pwr_float[p0>>2]=re_x_float*re_x_float+im_x_float*im_x_float;
+            k+=2;
         }
         return -5;
     }
@@ -296,49 +248,26 @@ float subtract_twochan_pulse(int p_max, int sub_size)
     c2=blanker_phase_c2*blanker_input[2*imax]*liminfo_amplitude_factor;
     t3=0;
     t4=0;
-    if(swfloat) {
-        while(p0 != pb) {
-            p0=(p0+8)&mask;
-            t1=blanker_refpulse[m+k];
-            t2=blanker_refpulse[m+k+1];
-            re_a=c1*t1-c2*t2;
-            im_a=c1*t2+c2*t1;
-            re_x=timf2_float[p0  ]-blanker_pol_c1*re_a;
-            im_x=timf2_float[p0+1]-blanker_pol_c1*im_a;
-            re_y=timf2_float[p0+2]-(blanker_pol_c2*re_a+blanker_pol_c3*im_a);
-            im_y=timf2_float[p0+3]-(blanker_pol_c2*im_a-blanker_pol_c3*re_a);
-            timf2_float[p0  ]=re_x;
-            timf2_float[p0+1]=im_x;
-            timf2_float[p0+2]=re_y;
-            timf2_float[p0+3]=im_y;
+    while(p0 != pb) {
+        p0=(p0+8)&mask;
+        t1=blanker_refpulse[m+k];
+        t2=blanker_refpulse[m+k+1];
+        re_a=c1*t1-c2*t2;
+        im_a=c1*t2+c2*t1;
+        re_x=timf2_float[p0  ]-blanker_pol_c1*re_a;
+        im_x=timf2_float[p0+1]-blanker_pol_c1*im_a;
+        re_y=timf2_float[p0+2]-(blanker_pol_c2*re_a+blanker_pol_c3*im_a);
+        im_y=timf2_float[p0+3]-(blanker_pol_c2*im_a-blanker_pol_c3*re_a);
+        timf2_float[p0  ]=re_x;
+        timf2_float[p0+1]=im_x;
+        timf2_float[p0+2]=re_y;
+        timf2_float[p0+3]=im_y;
 
-            pw=re_x*re_x+im_x*im_x+re_y*re_y+im_y*im_y;
-            t3+=timf2_pwr_float[p0>>3];
-            timf2_pwr_float[p0>>3]=pw;
-            k+=2;
-            t4+=pw;
-        }
-    } else {
-        while(p0 != pb) {
-            p0=(p0+8)&mask;
-            t1=blanker_refpulse[m+k];
-            t2=blanker_refpulse[m+k+1];
-            re_a=c1*t1-c2*t2;
-            im_a=c1*t2+c2*t1;
-            re_x=timf2_shi[p0  ]-blanker_pol_c1*re_a;
-            im_x=timf2_shi[p0+1]-blanker_pol_c1*im_a;
-            re_y=timf2_shi[p0+2]-(blanker_pol_c2*re_a+blanker_pol_c3*im_a);
-            im_y=timf2_shi[p0+3]-(blanker_pol_c2*im_a-blanker_pol_c3*re_a);
-            timf2_shi[p0  ]=re_x;
-            timf2_shi[p0+1]=im_x;
-            timf2_shi[p0+2]=re_y;
-            timf2_shi[p0+3]=im_y;
-            pw=0.5*(re_x*re_x+im_x*im_x+re_y*re_y+im_y*im_y);
-            t3+=timf2_pwr_int[p0>>3];
-            timf2_pwr_int[p0>>3]=pw;
-            k+=2;
-            t4+=pw;
-        }
+        pw=re_x*re_x+im_x*im_x+re_y*re_y+im_y*im_y;
+        t3+=timf2_pwr_float[p0>>3];
+        timf2_pwr_float[p0>>3]=pw;
+        k+=2;
+        t4+=pw;
     }
     retval=t4/t3;
     if(retval > 0.5) {
@@ -346,44 +275,23 @@ float subtract_twochan_pulse(int p_max, int sub_size)
 // Restore original data and report failure.
         p0=(8*(p_max-sub_size/2)+mask)&mask;
         k=refpul_size-sub_size;
-        if(swfloat) {
-            while(p0 != pb) {
-                p0=(p0+8)&mask;
-                t1=blanker_refpulse[m+k];
-                t2=blanker_refpulse[m+k+1];
-                re_a=c1*t1-c2*t2;
-                im_a=c1*t2+c2*t1;
-                re_x=timf2_float[p0  ]+blanker_pol_c1*re_a;
-                im_x=timf2_float[p0+1]+blanker_pol_c1*im_a;
-                re_y=timf2_float[p0+2]+(blanker_pol_c2*re_a+blanker_pol_c3*im_a);
-                im_y=timf2_float[p0+3]+(blanker_pol_c2*im_a-blanker_pol_c3*re_a);
-                timf2_float[p0  ]=re_x;
-                timf2_float[p0+1]=im_x;
-                timf2_float[p0+2]=re_y;
-                timf2_float[p0+3]=im_y;
-                pw=re_x*re_x+im_x*im_x+re_y*re_y+im_y*im_y;
-                timf2_pwr_float[p0>>3]=pw;
-                k+=2;
-            }
-        } else {
-            while(p0 != pb) {
-                p0=(p0+8)&mask;
-                t1=blanker_refpulse[m+k];
-                t2=blanker_refpulse[m+k+1];
-                re_a=blanker_phase_c1*t1-blanker_phase_c2*t2;
-                im_a=blanker_phase_c1*t2+blanker_phase_c2*t1;
-                re_x=timf2_shi[p0  ]+blanker_pol_c1*re_a;
-                im_x=timf2_shi[p0+1]+blanker_pol_c1*im_a;
-                re_y=timf2_shi[p0+2]+(blanker_pol_c2*re_a+blanker_pol_c3*im_a);
-                im_y=timf2_shi[p0+3]+(blanker_pol_c2*im_a-blanker_pol_c3*re_a);
-                timf2_shi[p0  ]=re_x;
-                timf2_shi[p0+1]=im_x;
-                timf2_shi[p0+2]=re_y;
-                timf2_shi[p0+3]=im_y;
-                pw=0.5*(re_x*re_x+im_x*im_x+re_y*re_y+im_y*im_y);
-                timf2_pwr_int[p0>>3]=pw;
-                k+=2;
-            }
+        while(p0 != pb) {
+            p0=(p0+8)&mask;
+            t1=blanker_refpulse[m+k];
+            t2=blanker_refpulse[m+k+1];
+            re_a=c1*t1-c2*t2;
+            im_a=c1*t2+c2*t1;
+            re_x=timf2_float[p0  ]+blanker_pol_c1*re_a;
+            im_x=timf2_float[p0+1]+blanker_pol_c1*im_a;
+            re_y=timf2_float[p0+2]+(blanker_pol_c2*re_a+blanker_pol_c3*im_a);
+            im_y=timf2_float[p0+3]+(blanker_pol_c2*im_a-blanker_pol_c3*re_a);
+            timf2_float[p0  ]=re_x;
+            timf2_float[p0+1]=im_x;
+            timf2_float[p0+2]=re_y;
+            timf2_float[p0+3]=im_y;
+            pw=re_x*re_x+im_x*im_x+re_y*re_y+im_y*im_y;
+            timf2_pwr_float[p0>>3]=pw;
+            k+=2;
         }
         return -5;
     }
@@ -414,30 +322,16 @@ int get_pulse_pol(int p_max)
     y2=0;
     re_xy=0;
     im_xy=0;
-    if(swfloat) {
-        while(pa != pb) {
-            pa=(pa+8)&mask;
-            re_x=timf2_float[pa  ];
-            im_x=timf2_float[pa+1];
-            re_y=timf2_float[pa+2];
-            im_y=timf2_float[pa+3];
-            x2+=re_x*re_x+im_x*im_x;
-            y2+=re_y*re_y+im_y*im_y;
-            re_xy+=re_x*re_y+im_x*im_y;
-            im_xy+=im_x*re_y-re_x*im_y;
-        }
-    } else {
-        while(pa != pb) {
-            pa=(pa+8)&mask;
-            re_x=timf2_shi[pa  ];
-            im_x=timf2_shi[pa+1];
-            re_y=timf2_shi[pa+2];
-            im_y=timf2_shi[pa+3];
-            x2+=re_x*re_x+im_x*im_x;
-            y2+=re_y*re_y+im_y*im_y;
-            re_xy+=re_x*re_y+im_x*im_y;
-            im_xy+=im_x*re_y-re_x*im_y;
-        }
+    while(pa != pb) {
+        pa=(pa+8)&mask;
+        re_x=timf2_float[pa  ];
+        im_x=timf2_float[pa+1];
+        re_y=timf2_float[pa+2];
+        im_y=timf2_float[pa+3];
+        x2+=re_x*re_x+im_x*im_x;
+        y2+=re_y*re_y+im_y*im_y;
+        re_xy+=re_x*re_y+im_x*im_y;
+        im_xy+=im_x*re_y-re_x*im_y;
     }
     t1=x2+y2;
     x2/=t1;
@@ -517,36 +411,19 @@ void transform_timf2_pol(int p_max)
     pa=(8*(p_max-blanker_pulsewidth)+mask)&mask;
     pb=(8*(p_max+blanker_pulsewidth) )&mask;
     i=0;
-    if(swfloat) {
-        while(pa != pb) {
-            pa=(pa+8)&mask;
-            re_x=timf2_float[pa  ];
-            im_x=timf2_float[pa+1];
-            re_y=timf2_float[pa+2];
-            im_y=timf2_float[pa+3];
-            blanker_input[i  ]= blanker_pol_c1*re_x
-                                +blanker_pol_c2*re_y
-                                -blanker_pol_c3*im_y;
-            blanker_input[i+1]= blanker_pol_c1*im_x
-                                +blanker_pol_c2*im_y
-                                +blanker_pol_c3*re_y;
-            i+=2;
-        }
-    } else {
-        while(pa != pb) {
-            pa=(pa+8)&mask;
-            re_x=timf2_shi[pa  ];
-            im_x=timf2_shi[pa+1];
-            re_y=timf2_shi[pa+2];
-            im_y=timf2_shi[pa+3];
-            blanker_input[i  ]= blanker_pol_c1*re_x
-                                +blanker_pol_c2*re_y
-                                -blanker_pol_c3*im_y;
-            blanker_input[i+1]= blanker_pol_c1*im_x
-                                +blanker_pol_c2*im_y
-                                +blanker_pol_c3*re_y;
-            i+=2;
-        }
+    while(pa != pb) {
+        pa=(pa+8)&mask;
+        re_x=timf2_float[pa  ];
+        im_x=timf2_float[pa+1];
+        re_y=timf2_float[pa+2];
+        im_y=timf2_float[pa+3];
+        blanker_input[i  ]= blanker_pol_c1*re_x
+                            +blanker_pol_c2*re_y
+                            -blanker_pol_c3*im_y;
+        blanker_input[i+1]= blanker_pol_c1*im_x
+                            +blanker_pol_c2*im_y
+                            +blanker_pol_c3*re_y;
+        i+=2;
     }
 }
 
@@ -570,36 +447,20 @@ void set_flag(char value, int p_max)
     pb=(pb+timf2pow_mask)&timf2pow_mask;
     begin_flag=( ((pb-blnk_pbeg+timf2pow_mask)&timf2pow_mask) > timf2pow_mask/2);
     if(!begin_flag) {
-        if(swfloat) {
-            while( timf2_pwr_float[pb] < timf2_pwr_float[p0] && pb!=blnk_pbeg) {
-                blanker_flag[pb]=value;
-                p0=pb;
-                pb=(pb+timf2pow_mask)&timf2pow_mask;
-            }
-        } else {
-            while( timf2_pwr_int[pb] < timf2_pwr_int[p0] && pb!=blnk_pbeg) {
-                blanker_flag[pb]=value;
-                p0=pb;
-                pb=(pb+timf2pow_mask)&timf2pow_mask;
-            }
+        while( timf2_pwr_float[pb] < timf2_pwr_float[p0] && pb!=blnk_pbeg) {
+            blanker_flag[pb]=value;
+            p0=pb;
+            pb=(pb+timf2pow_mask)&timf2pow_mask;
         }
     }
     p0=pa;
     pa=(pa+1)&timf2pow_mask;
     end_flag=( ((blnk_pend-pa+timf2pow_mask)&timf2pow_mask) > timf2pow_mask/2);
     if(!end_flag) {
-        if(swfloat) {
-            while( timf2_pwr_float[pa] < timf2_pwr_float[p0] && pa!=blnk_pend) {
-                p0=pa;
-                blanker_flag[pa]=value;
-                pa=(pa+1)&timf2pow_mask;
-            }
-        } else {
-            while( timf2_pwr_int[pa] < timf2_pwr_int[p0] && pa!=blnk_pend) {
-                p0=pa;
-                blanker_flag[pa]=value;
-                pa=(pa+1)&timf2pow_mask;
-            }
+        while( timf2_pwr_float[pa] < timf2_pwr_float[p0] && pa!=blnk_pend) {
+            p0=pa;
+            blanker_flag[pa]=value;
+            pa=(pa+1)&timf2pow_mask;
         }
     }
 }
@@ -622,7 +483,7 @@ void first_noise_blanker(void)
     unsigned int nfl;
     float totnoise;
     float sizlim;
-    unsigned int powermax_uint, pwrlim_uint;
+    unsigned int powermax_uint;
     float powermax_float, pwrlim_float;
     int timf2_findmax;
     unsigned int pulmax;
@@ -640,44 +501,6 @@ void first_noise_blanker(void)
 // Do not run this routine more often than 50 times per second.
     if(total_points < min_delay_time*ui.rx_ad_speed) {
         return;
-    }
-    if(swmmx_fft2 && ampinfo_flag != 0) {
-        p0=blnk_pbeg;
-        if(sw_onechan) {
-            while(p0 != blnk_pend ) {
-                p0=(p0+1)&timf2pow_mask;
-                k=p0<<2;
-                i=abs(timf2_shi[k  ]);
-                if(timf2_maxamp[0]<i)timf2_maxamp[0]=i;
-                i=abs(timf2_shi[k+1]);
-                if(timf2_maxamp[0]<i)timf2_maxamp[0]=i;
-                i=abs(timf2_shi[k+2]);
-                if(timf2_maxamp[2]<i)timf2_maxamp[2]=i;
-                i=abs(timf2_shi[k+3]);
-                if(timf2_maxamp[2]<i)timf2_maxamp[2]=i;
-            }
-        } else {
-            while(p0 != blnk_pend ) {
-                p0=(p0+1)&timf2pow_mask;
-                k=p0<<3;
-                i=abs(timf2_shi[k  ]);
-                if(timf2_maxamp[0]<i)timf2_maxamp[0]=i;
-                i=abs(timf2_shi[k+1]);
-                if(timf2_maxamp[0]<i)timf2_maxamp[0]=i;
-                i=abs(timf2_shi[k+2]);
-                if(timf2_maxamp[1]<i)timf2_maxamp[1]=i;
-                i=abs(timf2_shi[k+3]);
-                if(timf2_maxamp[1]<i)timf2_maxamp[1]=i;
-                i=abs(timf2_shi[k+4]);
-                if(timf2_maxamp[2]<i)timf2_maxamp[2]=i;
-                i=abs(timf2_shi[k+5]);
-                if(timf2_maxamp[2]<i)timf2_maxamp[2]=i;
-                i=abs(timf2_shi[k+6]);
-                if(timf2_maxamp[3]<i)timf2_maxamp[3]=i;
-                i=abs(timf2_shi[k+7]);
-                if(timf2_maxamp[3]<i)timf2_maxamp[3]=i;
-            }
-        }
     }
     fitted_pulses=0;
     cleared_points=0;
@@ -700,13 +523,8 @@ void first_noise_blanker(void)
 find_pulse:
     ;
 // Step until we find power above the limit.
-    if(swfloat) {
-        while( (timf2_pwr_float[pf] <= nfl || blanker_flag[pf]>64)
-                && pf != blnk_pend)pf=(pf+1)&timf2pow_mask;
-    } else {
-        while( (timf2_pwr_int[pf] <= nfl || blanker_flag[pf]>64)
-                && pf != blnk_pend)pf=(pf+1)&timf2pow_mask;
-    }
+    while( (timf2_pwr_float[pf] <= nfl || blanker_flag[pf]>64)
+            && pf != blnk_pend)pf=(pf+1)&timf2pow_mask;
     if(pf == blnk_pend)goto clever_x;
     p0=pf-1;
     p_max=pf;
@@ -718,28 +536,15 @@ find_pulse:
 // blanker_flag bit 0 is set each time a value is found
 // that is larger than preceding points in current range.
 // Values above 64 indicate point is already very much changed.
-    if(swfloat) {
-        while(p0 != blnk_pend && m>0) {
-            p0=(p0+1)&timf2pow_mask;
-            if(timf2_pwr_float[p0] > powermax_float && blanker_flag[p0]<64) {
-                blanker_flag[p0]=1;
-                powermax_float=timf2_pwr_float[p0];
-                p_max=p0;
-                m=blnfit_range;
-            }
-            m--;
+    while(p0 != blnk_pend && m>0) {
+        p0=(p0+1)&timf2pow_mask;
+        if(timf2_pwr_float[p0] > powermax_float && blanker_flag[p0]<64) {
+            blanker_flag[p0]=1;
+            powermax_float=timf2_pwr_float[p0];
+            p_max=p0;
+            m=blnfit_range;
         }
-    } else {
-        while(p0 != blnk_pend && m>0) {
-            p0=(p0+1)&timf2pow_mask;
-            if(timf2_pwr_int[p0] > powermax_uint && blanker_flag[p0]<64) {
-                blanker_flag[p0]=1;
-                powermax_uint=timf2_pwr_int[p0];
-                p_max=p0;
-                m=blnfit_range;
-            }
-            m--;
-        }
+        m--;
     }
     if(m>0) {
         goto clever_x;
@@ -751,18 +556,10 @@ find_pulse:
         pf=p_max;
 no_pulse:
         ;
-        if(swfloat) {
-            while( (timf2_pwr_float[pf] <= powermax_float || blanker_flag[pf]>64)
-                    && pf != blnk_pend) {
-                powermax_float=timf2_pwr_float[pf];
-                pf=(pf+1)&timf2pow_mask;
-            }
-        } else {
-            while( (timf2_pwr_int[pf] <= powermax_uint || blanker_flag[pf]>64)
-                    && pf != blnk_pend) {
-                powermax_uint=timf2_pwr_int[pf];
-                pf=(pf+1)&timf2pow_mask;
-            }
+        while( (timf2_pwr_float[pf] <= powermax_float || blanker_flag[pf]>64)
+                && pf != blnk_pend) {
+            powermax_float=timf2_pwr_float[pf];
+            pf=(pf+1)&timf2pow_mask;
         }
         if(pf == blnk_pend)goto clever_x;
         goto find_pulse;
@@ -771,48 +568,26 @@ no_pulse:
     if(p0 == blnk_pend)goto clever_x;
     if(blanker_flag[p0] >= 64)goto no_pulse;
     if(timf2_findmax == 0) {
-        if(swfloat) {
-            if(timf2_oscilloscope_powermax_float < powermax_float) {
-                timf2_oscilloscope_powermax_float=powermax_float;
-                timf2_oscilloscope_maxpoint=p_max;
-            }
-            if(sw_onechan) {
-                k=p_max<<2;
-                if(timf2_oscilloscope_maxval_float<fabs(timf2_float[k  ]))
-                    timf2_oscilloscope_maxval_float=fabs(timf2_float[k  ]);
-                if(timf2_oscilloscope_maxval_float<fabs(timf2_float[k+1]))
-                    timf2_oscilloscope_maxval_float=fabs(timf2_float[k+1]);
-            } else {
-                k=p_max<<3;
-                if(timf2_oscilloscope_maxval_float<fabs(timf2_float[k  ]))
-                    timf2_oscilloscope_maxval_float=fabs(timf2_float[k  ]);
-                if(timf2_oscilloscope_maxval_float<fabs(timf2_float[k+1]))
-                    timf2_oscilloscope_maxval_float=fabs(timf2_float[k+1]);
-                if(timf2_oscilloscope_maxval_float<fabs(timf2_float[k+2]))
-                    timf2_oscilloscope_maxval_float=fabs(timf2_float[k+2]);
-                if(timf2_oscilloscope_maxval_float<fabs(timf2_float[k+3]))
-                    timf2_oscilloscope_maxval_float=fabs(timf2_float[k+3]);
-            }
+        if(timf2_oscilloscope_powermax_float < powermax_float) {
+            timf2_oscilloscope_powermax_float=powermax_float;
+            timf2_oscilloscope_maxpoint=p_max;
+        }
+        if(sw_onechan) {
+            k=p_max<<2;
+            if(timf2_oscilloscope_maxval_float<fabs(timf2_float[k  ]))
+                timf2_oscilloscope_maxval_float=fabs(timf2_float[k  ]);
+            if(timf2_oscilloscope_maxval_float<fabs(timf2_float[k+1]))
+                timf2_oscilloscope_maxval_float=fabs(timf2_float[k+1]);
         } else {
-            if(timf2_oscilloscope_powermax_uint < powermax_uint) {
-                timf2_oscilloscope_powermax_uint=powermax_uint;
-                timf2_oscilloscope_maxpoint=p_max;
-            }
-            i=timf2_oscilloscope_maxval_uint;
-            if(sw_onechan) {
-                k=p_max<<2;
-                if(i<abs(timf2_shi[k  ]))i=abs(timf2_shi[k  ]);
-                if(i<abs(timf2_shi[k+1]))i=abs(timf2_shi[k+1]);
-            } else {
-                k=p_max<<3;
-                if(i<abs(timf2_shi[k  ]))i=abs(timf2_shi[k  ]);
-                if(i<abs(timf2_shi[k+1]))i=abs(timf2_shi[k+1]);
-                if(i<abs(timf2_shi[k+2]))i=abs(timf2_shi[k+2]);
-                if(i<abs(timf2_shi[k+3]))i=abs(timf2_shi[k+3]);
-            }
-            if(timf2_oscilloscope_maxval_uint<(unsigned int)(i)) {
-                timf2_oscilloscope_maxval_uint=i;
-            }
+            k=p_max<<3;
+            if(timf2_oscilloscope_maxval_float<fabs(timf2_float[k  ]))
+                timf2_oscilloscope_maxval_float=fabs(timf2_float[k  ]);
+            if(timf2_oscilloscope_maxval_float<fabs(timf2_float[k+1]))
+                timf2_oscilloscope_maxval_float=fabs(timf2_float[k+1]);
+            if(timf2_oscilloscope_maxval_float<fabs(timf2_float[k+2]))
+                timf2_oscilloscope_maxval_float=fabs(timf2_float[k+2]);
+            if(timf2_oscilloscope_maxval_float<fabs(timf2_float[k+3]))
+                timf2_oscilloscope_maxval_float=fabs(timf2_float[k+3]);
         }
     }
 // We do not want to handle unresolved multiple pulses with
@@ -824,34 +599,19 @@ no_pulse:
     k=2;
 check_avgpwr:
     ;
-    if(swfloat) {
-        powermax_float=timf2_pwr_float[p_max];
-        t1=powermax_float*bln[bln_no].rest;
-    } else {
-        powermax_uint=timf2_pwr_int[p_max];
-        t1=powermax_uint*bln[bln_no].rest;
-    }
+    powermax_float=timf2_pwr_float[p_max];
+    t1=powermax_float*bln[bln_no].rest;
     if(t1 < sizlim) {
         goto get_fit_size;
     }
     t1=0;
-    if(swfloat) {
-        while(k < bln[bln_no].size) {
-            t1+=timf2_pwr_float[pa]+timf2_pwr_float[pb];
-            pa=(pa+1)&timf2pow_mask;
-            pb=(pb+timf2pow_mask)&timf2pow_mask;
-            k+=2;
-        }
-        avgpwr[bln_no]=t1/powermax_float;
-    } else {
-        while(k < bln[bln_no].size) {
-            t1+=(float)(timf2_pwr_int[pa])+(float)(timf2_pwr_int[pb]);
-            pa=(pa+1)&timf2pow_mask;
-            pb=(pb+timf2pow_mask)&timf2pow_mask;
-            k+=2;
-        }
-        avgpwr[bln_no]=t1/powermax_uint;
+    while(k < bln[bln_no].size) {
+        t1+=timf2_pwr_float[pa]+timf2_pwr_float[pb];
+        pa=(pa+1)&timf2pow_mask;
+        pb=(pb+timf2pow_mask)&timf2pow_mask;
+        k+=2;
     }
+    avgpwr[bln_no]=t1/powermax_float;
     bln_no++;
     if(bln_no <=largest_blnfit)goto check_avgpwr;
 get_fit_size:
@@ -899,240 +659,118 @@ skip_fit:
     totnoise=timf2_noise_floor*ui.rx_rf_channels;
     pk=p0;
     if(ui.rx_rf_channels==1) {
-        if(swfloat) {
-            while(p0!=blnk_pend) {
-                p0=(p0+1)&timf2pow_mask;
-                if(timf2_pwr_float[p0]>nfl) {
-                    if(ifirst==0)pk=p0;
-                    if(timf2_pwr_float[p0]>pulmax_float)pulmax_float=timf2_pwr_float[p0];
-                    ifirst++;
-                    k=p0<<2;
-                    if(timf2_findmax == 0) {
-                        if(timf2_oscilloscope_powermax_float < timf2_pwr_float[p0]) {
-                            timf2_oscilloscope_powermax_float=timf2_pwr_float[p0];
-                            timf2_oscilloscope_maxpoint=p0;
-                        }
-                        if(t1<fabs(timf2_float[k  ]))t1=fabs(timf2_float[k  ]);
-                        if(t1<fabs(timf2_float[k+1]))t1=fabs(timf2_float[k+1]);
+        while(p0!=blnk_pend) {
+            p0=(p0+1)&timf2pow_mask;
+            if(timf2_pwr_float[p0]>nfl) {
+                if(ifirst==0)pk=p0;
+                if(timf2_pwr_float[p0]>pulmax_float)pulmax_float=timf2_pwr_float[p0];
+                ifirst++;
+                k=p0<<2;
+                if(timf2_findmax == 0) {
+                    if(timf2_oscilloscope_powermax_float < timf2_pwr_float[p0]) {
+                        timf2_oscilloscope_powermax_float=timf2_pwr_float[p0];
+                        timf2_oscilloscope_maxpoint=p0;
                     }
-                    cleared_points++;
-                    timf2_pwr_float[p0]=0;
-                    timf2_float[k  ]=0;
-                    timf2_float[k+1]=0;
-                } else {
-                    if(ifirst != 0) {
-                        ifirst=0;
-                        t1=pulmax_float/totnoise;
-                        pulmax_float=0;
-                        if(t1 > 4) {
-// Set a limit at 40 dB.
-                            if(t1 > 10000)t1=10000;
-                            t1=sqrt(t1)/100;
-// Clear some points before the first cleared.
-                            pa=pk;
-                            i=stupid_clr1*t1+0.5;
-                            for(j=0; j<i; j++) {
-                                pa=(pa+timf2pow_mask)&timf2pow_mask;
-                                k=pa<<2;
-                                timf2_pwr_float[pa]=0;
-                                timf2_float[k  ]=0;
-                                timf2_float[k+1]=0;
-                                cleared_points++;
-                            }
-// Clear some points after the last cleared.
-                            pa=p0;
-                            i=stupid_clr2*t1+0.5;
-                            for(j=0; j<i; j++) {
-                                k=pa<<2;
-                                timf2_pwr_float[pa]=0;
-                                timf2_float[k  ]=0;
-                                timf2_float[k+1]=0;
-                                pa=(pa+1)&timf2pow_mask;
-                                cleared_points++;
-                            }
-                        }
-                    }
+                    if(t1<fabs(timf2_float[k  ]))t1=fabs(timf2_float[k  ]);
+                    if(t1<fabs(timf2_float[k+1]))t1=fabs(timf2_float[k+1]);
                 }
-            }
-        } else {
-            while(p0!=blnk_pend) {
-                p0=(p0+1)&timf2pow_mask;
-                if(timf2_pwr_int[p0]>nfl) {
-                    if(ifirst==0)pk=p0;
-                    if(timf2_pwr_int[p0]>pulmax)pulmax=timf2_pwr_int[p0];
-                    ifirst++;
-                    k=p0<<2;
-                    if(timf2_findmax == 0) {
-                        if(timf2_oscilloscope_powermax_uint < timf2_pwr_int[p0]) {
-                            timf2_oscilloscope_powermax_uint=timf2_pwr_int[p0];
-                            timf2_oscilloscope_maxpoint=p0;
-                        }
-                        if(i<abs(timf2_shi[k  ]))i=abs(timf2_shi[k  ]);
-                        if(i<abs(timf2_shi[k+1]))i=abs(timf2_shi[k+1]);
-                    }
-                    cleared_points++;
-                    timf2_pwr_int[p0]=0;
-                    timf2_shi[k  ]=0;
-                    timf2_shi[k+1]=0;
-                } else {
-                    if(ifirst != 0) {
-                        ifirst=0;
-                        t1=pulmax/totnoise;
-                        pulmax=0;
-                        if(t1 > 4) {
+                cleared_points++;
+                timf2_pwr_float[p0]=0;
+                timf2_float[k  ]=0;
+                timf2_float[k+1]=0;
+            } else {
+                if(ifirst != 0) {
+                    ifirst=0;
+                    t1=pulmax_float/totnoise;
+                    pulmax_float=0;
+                    if(t1 > 4) {
 // Set a limit at 40 dB.
-                            if(t1 > 10000)t1=10000;
-                            t1=sqrt(t1)/100;
+                        if(t1 > 10000)t1=10000;
+                        t1=sqrt(t1)/100;
 // Clear some points before the first cleared.
-                            pa=pk;
-                            i=stupid_clr1*t1+0.5;
-                            for(j=0; j<i; j++) {
-                                pa=(pa+timf2pow_mask)&timf2pow_mask;
-                                k=pa<<2;
-                                timf2_pwr_int[pa]=0;
-                                timf2_shi[k  ]=0;
-                                timf2_shi[k+1]=0;
-                                cleared_points++;
-                            }
+                        pa=pk;
+                        i=stupid_clr1*t1+0.5;
+                        for(j=0; j<i; j++) {
+                            pa=(pa+timf2pow_mask)&timf2pow_mask;
+                            k=pa<<2;
+                            timf2_pwr_float[pa]=0;
+                            timf2_float[k  ]=0;
+                            timf2_float[k+1]=0;
+                            cleared_points++;
+                        }
 // Clear some points after the last cleared.
-                            pa=p0;
-                            i=stupid_clr2*t1+0.5;
-                            for(j=0; j<i; j++) {
-                                k=pa<<2;
-                                timf2_pwr_int[pa]=0;
-                                timf2_shi[k  ]=0;
-                                timf2_shi[k+1]=0;
-                                pa=(pa+1)&timf2pow_mask;
-                                cleared_points++;
-                            }
+                        pa=p0;
+                        i=stupid_clr2*t1+0.5;
+                        for(j=0; j<i; j++) {
+                            k=pa<<2;
+                            timf2_pwr_float[pa]=0;
+                            timf2_float[k  ]=0;
+                            timf2_float[k+1]=0;
+                            pa=(pa+1)&timf2pow_mask;
+                            cleared_points++;
                         }
                     }
                 }
             }
         }
     } else {
-        if(swfloat) {
-            while(p0!=blnk_pend) {
-                p0=(p0+1)&timf2pow_mask;
-                if(timf2_pwr_float[p0]>nfl) {
-                    if(ifirst==0)pk=p0;
-                    if(timf2_pwr_float[p0]>pulmax_float)pulmax_float=timf2_pwr_float[p0];
-                    ifirst++;
-                    k=p0<<3;
-                    if(timf2_findmax == 0) {
-                        if(timf2_oscilloscope_powermax_float < timf2_pwr_float[p0]) {
-                            timf2_oscilloscope_powermax_float=timf2_pwr_float[p0];
-                            timf2_oscilloscope_maxpoint=p0;
-                        }
-                        if(t1<fabs(timf2_float[k  ]))t1=fabs(timf2_float[k  ]);
-                        if(t1<fabs(timf2_float[k+1]))t1=fabs(timf2_float[k+1]);
-                        if(t1<fabs(timf2_float[k+2]))t1=fabs(timf2_float[k+2]);
-                        if(t1<fabs(timf2_float[k+3]))t1=fabs(timf2_float[k+3]);
+        while(p0!=blnk_pend) {
+            p0=(p0+1)&timf2pow_mask;
+            if(timf2_pwr_float[p0]>nfl) {
+                if(ifirst==0)pk=p0;
+                if(timf2_pwr_float[p0]>pulmax_float)pulmax_float=timf2_pwr_float[p0];
+                ifirst++;
+                k=p0<<3;
+                if(timf2_findmax == 0) {
+                    if(timf2_oscilloscope_powermax_float < timf2_pwr_float[p0]) {
+                        timf2_oscilloscope_powermax_float=timf2_pwr_float[p0];
+                        timf2_oscilloscope_maxpoint=p0;
                     }
-                    cleared_points++;
-                    timf2_pwr_float[p0]=0;
-                    timf2_float[k  ]=0;
-                    timf2_float[k+1]=0;
-                    timf2_float[k+2]=0;
-                    timf2_float[k+3]=0;
-                } else {
-                    if(ifirst != 0) {
-                        ifirst=0;
-                        t1=pulmax_float/totnoise;
-                        pulmax_float=0;
-                        if(t1 > 4) {
-// Set a limit at 40 dB.
-                            if(t1 > 10000)t1=10000;
-                            t1=sqrt(t1)/100;
-// Clear some points before the first cleared.
-                            pa=pk;
-                            i=stupid_clr1*t1+0.5;
-                            for(j=0; j<i; j++) {
-                                pa=(pa+timf2pow_mask)&timf2pow_mask;
-                                k=pa<<3;
-                                timf2_pwr_float[pa]=0;
-                                timf2_float[k  ]=0;
-                                timf2_float[k+1]=0;
-                                timf2_float[k+2]=0;
-                                timf2_float[k+3]=0;
-                                cleared_points++;
-                            }
-// Clear some points after the last cleared.
-                            pa=p0;
-                            i=stupid_clr2*t1+0.5;
-                            for(j=0; j<i; j++) {
-                                k=pa<<3;
-                                timf2_pwr_float[pa]=0;
-                                timf2_float[k  ]=0;
-                                timf2_float[k+1]=0;
-                                timf2_float[k+2]=0;
-                                timf2_float[k+3]=0;
-                                pa=(pa+1)&timf2pow_mask;
-                                cleared_points++;
-                            }
-                        }
-                    }
+                    if(t1<fabs(timf2_float[k  ]))t1=fabs(timf2_float[k  ]);
+                    if(t1<fabs(timf2_float[k+1]))t1=fabs(timf2_float[k+1]);
+                    if(t1<fabs(timf2_float[k+2]))t1=fabs(timf2_float[k+2]);
+                    if(t1<fabs(timf2_float[k+3]))t1=fabs(timf2_float[k+3]);
                 }
-            }
-        } else {
-            while(p0!=blnk_pend) {
-                p0=(p0+1)&timf2pow_mask;
-                if(timf2_pwr_int[p0]>nfl) {
-                    if(ifirst==0)pk=p0;
-                    if(timf2_pwr_int[p0]>pulmax)pulmax=timf2_pwr_int[p0];
-                    ifirst++;
-                    k=p0<<3;
-                    if(timf2_findmax == 0) {
-                        if(timf2_oscilloscope_powermax_uint < timf2_pwr_int[p0]) {
-                            timf2_oscilloscope_powermax_uint=timf2_pwr_int[p0];
-                            timf2_oscilloscope_maxpoint=p0;
-                        }
-                        if(i<abs(timf2_shi[k  ]))i=abs(timf2_shi[k  ]);
-                        if(i<abs(timf2_shi[k+1]))i=abs(timf2_shi[k+1]);
-                        if(i<abs(timf2_shi[k+2]))i=abs(timf2_shi[k+2]);
-                        if(i<abs(timf2_shi[k+3]))i=abs(timf2_shi[k+3]);
-                    }
-                    cleared_points++;
-                    timf2_pwr_int[p0]=0;
-                    timf2_shi[k  ]=0;
-                    timf2_shi[k+1]=0;
-                    timf2_shi[k+2]=0;
-                    timf2_shi[k+3]=0;
-                } else {
-                    if(ifirst != 0) {
-                        ifirst=0;
-                        t1=pulmax/totnoise;
-                        pulmax=0;
-                        if(t1 > 4) {
+                cleared_points++;
+                timf2_pwr_float[p0]=0;
+                timf2_float[k  ]=0;
+                timf2_float[k+1]=0;
+                timf2_float[k+2]=0;
+                timf2_float[k+3]=0;
+            } else {
+                if(ifirst != 0) {
+                    ifirst=0;
+                    t1=pulmax_float/totnoise;
+                    pulmax_float=0;
+                    if(t1 > 4) {
 // Set a limit at 40 dB.
-                            if(t1 > 10000)t1=10000;
-                            t1=sqrt(t1)/100;
+                        if(t1 > 10000)t1=10000;
+                        t1=sqrt(t1)/100;
 // Clear some points before the first cleared.
-                            pa=pk;
-                            i=stupid_clr1*t1+0.5;
-                            for(j=0; j<i; j++) {
-                                pa=(pa+timf2pow_mask)&timf2pow_mask;
-                                k=pa<<3;
-                                timf2_pwr_int[pa]=0;
-                                timf2_shi[k  ]=0;
-                                timf2_shi[k+1]=0;
-                                timf2_shi[k+2]=0;
-                                timf2_shi[k+3]=0;
-                                cleared_points++;
-                            }
+                        pa=pk;
+                        i=stupid_clr1*t1+0.5;
+                        for(j=0; j<i; j++) {
+                            pa=(pa+timf2pow_mask)&timf2pow_mask;
+                            k=pa<<3;
+                            timf2_pwr_float[pa]=0;
+                            timf2_float[k  ]=0;
+                            timf2_float[k+1]=0;
+                            timf2_float[k+2]=0;
+                            timf2_float[k+3]=0;
+                            cleared_points++;
+                        }
 // Clear some points after the last cleared.
-                            pa=p0;
-                            i=stupid_clr2*t1+0.5;
-                            for(j=0; j<i; j++) {
-                                k=pa<<3;
-                                timf2_pwr_int[pa]=0;
-                                timf2_shi[k  ]=0;
-                                timf2_shi[k+1]=0;
-                                timf2_shi[k+2]=0;
-                                timf2_shi[k+3]=0;
-                                pa=(pa+1)&timf2pow_mask;
-                                cleared_points++;
-                            }
+                        pa=p0;
+                        i=stupid_clr2*t1+0.5;
+                        for(j=0; j<i; j++) {
+                            k=pa<<3;
+                            timf2_pwr_float[pa]=0;
+                            timf2_float[k  ]=0;
+                            timf2_float[k+1]=0;
+                            timf2_float[k+2]=0;
+                            timf2_float[k+3]=0;
+                            pa=(pa+1)&timf2pow_mask;
+                            cleared_points++;
                         }
                     }
                 }
@@ -1142,14 +780,8 @@ skip_fit:
     if(cleared_points > 0) {
         if(timf2_findmax == 0) {
             timf2_findmax =1;
-            if(swfloat) {
-                if(timf2_oscilloscope_maxval_float<t1) {
-                    timf2_oscilloscope_maxval_float=t1;
-                }
-            } else {
-                if(timf2_oscilloscope_maxval_uint<(unsigned int)(i)) {
-                    timf2_oscilloscope_maxval_uint=i;
-                }
+            if(timf2_oscilloscope_maxval_float<t1) {
+                timf2_oscilloscope_maxval_float=t1;
             }
         }
     }
@@ -1164,61 +796,32 @@ skip_stupid:
 // Note that pointers are multiples of four.
     if(timf2_findmax == 0) {
         p0=blnk_pbeg;
-        if(swfloat) {
-            pwrlim_float=timf2_oscilloscope_powermax_float/3;
-            while(p0 != blnk_pend ) {
-                p0=(p0+4)&timf2pow_mask;
-                if(timf2_pwr_float[p0] > pwrlim_float) {
-                    if(sw_onechan) {
-                        k=p0<<2;
-                        if(timf2_oscilloscope_maxval_float<fabs(timf2_float[k  ]))
-                            timf2_oscilloscope_maxval_float=fabs(timf2_float[k  ]);
-                        if(timf2_oscilloscope_maxval_float<fabs(timf2_float[k+1]))
-                            timf2_oscilloscope_maxval_float=fabs(timf2_float[k+1]);
-                    } else {
-                        k=p0<<3;
-                        if(timf2_oscilloscope_maxval_float<fabs(timf2_float[k  ]))
-                            timf2_oscilloscope_maxval_float=fabs(timf2_float[k  ]);
-                        if(timf2_oscilloscope_maxval_float<fabs(timf2_float[k+1]))
-                            timf2_oscilloscope_maxval_float=fabs(timf2_float[k+1]);
-                        if(timf2_oscilloscope_maxval_float<fabs(timf2_float[k+2]))
-                            timf2_oscilloscope_maxval_float=fabs(timf2_float[k+2]);
-                        if(timf2_oscilloscope_maxval_float<fabs(timf2_float[k+3]))
-                            timf2_oscilloscope_maxval_float=fabs(timf2_float[k+3]);
-                    }
-                    if(timf2_oscilloscope_powermax_float < timf2_pwr_float[p0]) {
-                        timf2_oscilloscope_powermax_float=timf2_pwr_float[p0];
-                        pwrlim_float=timf2_oscilloscope_powermax_float/3;
-                        timf2_oscilloscope_maxpoint=p0;
-                    }
+        pwrlim_float=timf2_oscilloscope_powermax_float/3;
+        while(p0 != blnk_pend ) {
+            p0=(p0+4)&timf2pow_mask;
+            if(timf2_pwr_float[p0] > pwrlim_float) {
+                if(sw_onechan) {
+                    k=p0<<2;
+                    if(timf2_oscilloscope_maxval_float<fabs(timf2_float[k  ]))
+                        timf2_oscilloscope_maxval_float=fabs(timf2_float[k  ]);
+                    if(timf2_oscilloscope_maxval_float<fabs(timf2_float[k+1]))
+                        timf2_oscilloscope_maxval_float=fabs(timf2_float[k+1]);
+                } else {
+                    k=p0<<3;
+                    if(timf2_oscilloscope_maxval_float<fabs(timf2_float[k  ]))
+                        timf2_oscilloscope_maxval_float=fabs(timf2_float[k  ]);
+                    if(timf2_oscilloscope_maxval_float<fabs(timf2_float[k+1]))
+                        timf2_oscilloscope_maxval_float=fabs(timf2_float[k+1]);
+                    if(timf2_oscilloscope_maxval_float<fabs(timf2_float[k+2]))
+                        timf2_oscilloscope_maxval_float=fabs(timf2_float[k+2]);
+                    if(timf2_oscilloscope_maxval_float<fabs(timf2_float[k+3]))
+                        timf2_oscilloscope_maxval_float=fabs(timf2_float[k+3]);
                 }
-            }
-        } else {
-            pwrlim_uint=timf2_oscilloscope_powermax_uint/3;
-            i=timf2_oscilloscope_maxval_uint;
-            while(p0 != blnk_pend ) {
-                p0=(p0+4)&timf2pow_mask;
-                if(timf2_pwr_int[p0] > pwrlim_uint) {
-                    if(sw_onechan) {
-                        k=p0<<2;
-                        if(i<abs(timf2_shi[k  ]))i=abs(timf2_shi[k  ]);
-                        if(i<abs(timf2_shi[k+1]))i=abs(timf2_shi[k+1]);
-                    } else {
-                        k=p0<<3;
-                        if(i<abs(timf2_shi[k  ]))i=abs(timf2_shi[k  ]);
-                        if(i<abs(timf2_shi[k+1]))i=abs(timf2_shi[k+1]);
-                        if(i<abs(timf2_shi[k+2]))i=abs(timf2_shi[k+2]);
-                        if(i<abs(timf2_shi[k+3]))i=abs(timf2_shi[k+3]);
-                    }
-                    if(timf2_oscilloscope_powermax_uint < timf2_pwr_int[p0]) {
-                        timf2_oscilloscope_powermax_uint=timf2_pwr_int[p0];
-                        pwrlim_uint=timf2_oscilloscope_powermax_uint/3;
-                        timf2_oscilloscope_maxpoint=p0;
-                    }
+                if(timf2_oscilloscope_powermax_float < timf2_pwr_float[p0]) {
+                    timf2_oscilloscope_powermax_float=timf2_pwr_float[p0];
+                    pwrlim_float=timf2_oscilloscope_powermax_float/3;
+                    timf2_oscilloscope_maxpoint=p0;
                 }
-            }
-            if(timf2_oscilloscope_maxval_uint<(unsigned int)(i)) {
-                timf2_oscilloscope_maxval_uint=i;
             }
         }
     }
@@ -1229,14 +832,8 @@ skip_stupid:
         }
         if(timf2_oscilloscope_counter >= timf2_oscilloscope_interval) {
             i=0;
-            if(swfloat) {
-                if(timf2_oscilloscope_powermax_float > 0) {
-                    i=timf2_oscilloscope_maxpoint;
-                }
-            } else {
-                if(timf2_oscilloscope_powermax_uint > 0) {
-                    i=timf2_oscilloscope_maxpoint;
-                }
+            if(timf2_oscilloscope_powermax_float > 0) {
+                i=timf2_oscilloscope_maxpoint;
             }
             if(i != timf2_show_pointer) {
                 if(i != -timf2_show_pointer) {
@@ -1280,44 +877,24 @@ skip_stupid:
     if(k<1)k=1;
     t1=0;
     if(sw_onechan) {
-        if(swfloat) {
-            while(p0 != timf2p_fit) {
-                p0=(p0+4)&timf2pow_mask;
-                t1+=timf2_pwr_float[p0];
-            }
-        } else {
-            while(p0 != timf2p_fit) {
-                p0=(p0+4)&timf2pow_mask;
-                t1+=timf2_pwr_int[p0];
-            }
+        while(p0 != timf2p_fit) {
+            p0=(p0+4)&timf2pow_mask;
+            t1+=timf2_pwr_float[p0];
         }
         t1/=k;
         if(t1<10)t1=10;
         timf2_despiked_pwrinc[0]+=t1;
     } else {
         t2=0;
-        if(swfloat) {
-            while(p0 != timf2p_fit) {
-                p0=(p0+4)&timf2pow_mask;
-                pa=p0<<3;
-                t3=timf2_float[pa  ];
-                t4=timf2_float[pa+1];
-                t1+=t3*t3+t4*t4;
-                t3=timf2_float[pa+2];
-                t4=timf2_float[pa+3];
-                t2+=t3*t3+t4*t4;
-            }
-        } else {
-            while(p0 != timf2p_fit) {
-                p0=(p0+4)&timf2pow_mask;
-                pa=p0<<3;
-                t3=(float)(timf2_shi[pa  ]);
-                t4=(float)(timf2_shi[pa+1]);
-                t1+=t3*t3+t4*t4;
-                t3=(float)(timf2_shi[pa+2]);
-                t4=(float)(timf2_shi[pa+3]);
-                t2+=t3*t3+t4*t4;
-            }
+        while(p0 != timf2p_fit) {
+            p0=(p0+4)&timf2pow_mask;
+            pa=p0<<3;
+            t3=timf2_float[pa  ];
+            t4=timf2_float[pa+1];
+            t1+=t3*t3+t4*t4;
+            t3=timf2_float[pa+2];
+            t4=timf2_float[pa+3];
+            t2+=t3*t3+t4*t4;
         }
         t1/=k;
         t2/=k;

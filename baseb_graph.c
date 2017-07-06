@@ -272,9 +272,6 @@ void make_bg_yfac(void)
     } else {
         bg.yfac_power=FFT2_BASEBAND_FACTOR*
                       (float)(1<<genparm[FIRST_BCKFFT_ATT_N])/fft2_size;
-        if(fft_cntrl[FFT2_CURMODE].mmx != 0) {
-            bg.yfac_power*=1.4*(1<<(genparm[SECOND_FFT_ATT_N]));
-        }
         bg.yfac_power*=bg.yfac_power;
         bg.yfac_power*=(float)(1<<genparm[MIX1_BANDWIDTH_REDUCTION_N]);
     }
@@ -304,9 +301,6 @@ void make_daout_gain(void)
         if(genparm[SECOND_FFT_ENABLE]!=0) {
             daout_gain/=fft2_size;
             daout_gain*=1<<genparm[FIRST_BCKFFT_ATT_N];
-            if(fft_cntrl[FFT2_CURMODE].mmx != 0) {
-                daout_gain*=1<<(genparm[SECOND_FFT_ATT_N]);
-            }
         }
         daout_gain*=sqrt((1 + 1/(0.5+genparm[FIRST_FFT_SINPOW]))/
                          (float)(fft1_size));
@@ -488,11 +482,7 @@ void construct_fir(int win, int siz, int n, int *points, int ct,
         firbuf[siz+2*i  ]=fir_tab[i].cos*(t1-t2);
         firbuf[siz+2*i+1]=fir_tab[i].sin*(t1-t2);
     }
-#if IA64 == 0 && CPU == CPU_INTEL
-    asmbulk_of_dif(siz, n, firbuf, fir_tab, yieldflag_ndsp_fft3);
-#else
     bulk_of_dif(siz, n, firbuf, fir_tab, yieldflag_ndsp_fft3);
-#endif
     for(i=0; i < siz; i+=2) {
         ib=fir_permute[i];
         ic=fir_permute[i+1];
@@ -1221,11 +1211,7 @@ void make_bg_filter(void)
         fft3_tmp[fft3_size+2*i+1]=fft3_tab[i].sin*(t1-t2)-fft3_tab[i].cos*(t4-t3);
     }
     if(fft3_size > 2*8192)lir_sched_yield();
-#if IA64 == 0 && CPU == CPU_INTEL
-    asmbulk_of_dif(fft3_size, fft3_n, fft3_tmp, fft3_tab, yieldflag_ndsp_fft3);
-#else
     bulk_of_dif(fft3_size, fft3_n, fft3_tmp, fft3_tab, yieldflag_ndsp_fft3);
-#endif
     if(fft3_size > 8192)lir_sched_yield();
     for(i=0; i < fft3_size; i+=2) {
         ib=fft3_permute[i];
@@ -2741,11 +2727,7 @@ new_fft3:
             fft3_tmp[fft3_size+2*i   ]=fft3_tab[i].cos*x1+fft3_tab[i].sin*x2;
             fft3_tmp[fft3_size+2*i +1]=fft3_tab[i].sin*x1-fft3_tab[i].cos*x2;
         }
-#if IA64 == 0 && CPU == CPU_INTEL
-        asmbulk_of_dif(fft3_size, fft3_n, fft3_tmp, fft3_tab, yieldflag_ndsp_fft3);
-#else
         bulk_of_dif(fft3_size, fft3_n, fft3_tmp, fft3_tab, yieldflag_ndsp_fft3);
-#endif
         for(i=0; i < fft3_size; i+=2) {
             ib=fft3_permute[i];
             ic=fft3_permute[i+1];

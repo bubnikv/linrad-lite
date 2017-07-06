@@ -318,8 +318,6 @@ error_exit:
         goto wmain_error;
     }
     expose_time=current_time();
-    mmx_present=1;
-    simd_present=1;
     GetObject(memory_hbm,sizeof(memory_bm),&memory_bm);
     if(memory_bm.bmType != 0)lirerr(10003);
     mempix=memory_bm.bmBits;
@@ -342,8 +340,6 @@ translate_loop:
     }
     lir_sched_yield();
     if(!allow_quit_flag)goto translate_loop;
-kill:
-    ;
     ReleaseSemaphore(rxin1_bufready,1,&old);
     ReleaseSemaphore(rxin1_bufready,1,&old);
     store_in_kbdbuf(0);

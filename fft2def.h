@@ -41,7 +41,6 @@ extern float *fft2_power_float;
 extern float *fft2_powersum_float;
 extern float fft2_bandwidth;
 
-extern short int *fft2_short_int;
 extern unsigned int *fft2_bigpermute;
 extern MMX_COSIN_TABLE *fft2_mmxcosin;
 extern short int *fft2_mmxwin;

@@ -250,6 +250,8 @@ typedef void (*ROUTINE) (void);
 #define AMPLITUDE_EXPAND_EXPONENT 30
 #define BG_WATERF_BLANKED_PERCENT 31
 
+// Parameters of a receiver, mode specific.
+// Length of the genparm, genparm_min, genparm_max, genparm_default, genparm_text, newco_genparm tables.
 #define MAX_GENPARM 32
 
 // *******************************************************
@@ -1056,8 +1058,6 @@ typedef struct {
     unsigned char window;
     unsigned char permute;
     unsigned char max_n;
-    unsigned char mmx;
-    unsigned char simd;
     unsigned char real2complex;
     unsigned char parall_fft;
     char *text;
@@ -1077,10 +1077,14 @@ typedef struct {
     float re_xy;
 } TWOCHAN_POWER;
 
-# define MAX_FFT_VERSIONS 18
-# define MAX_FFT1_VERNR 8
-# define MAX_FFT1_BCKVERNR 4
-# define MAX_FFT2_VERNR 4
+// Number of FFT implementations, see the fft_cntrl table.
+#define MAX_FFT_VERSIONS 18
+// Length of the fft1_version table, listing the FFT implementations allowed for FFT1.
+#define MAX_FFT1_VERNR 4
+// Length of the fft1_back_version table, listing the FFT implementations allowed for the reverse FFT1.
+#define MAX_FFT1_BCKVERNR 2
+// Length of the fft2_version table, listing the FFT implementations allowed for the FFT2.
+#define MAX_FFT2_VERNR 3
 
 #ifdef _MSC_VER
 #ifndef ssize_t

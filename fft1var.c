@@ -29,34 +29,31 @@
 //unsigned char window;
 //unsigned char permute;
 //unsigned char max_n;
-//unsigned char mmx;
-//unsigned char simd;
 //unsigned char real2complex;
 //unsigned char parall_fft;
 //char *text;
 //} FFT_SETUP_INFO;
 
-
 FFT_SETUP_INFO fft_cntrl[MAX_FFT_VERSIONS]= {
-    {4,0,15,0,1,0,2,"Twin Radix 4 DIT SIMD"},                   //0
-    {4,0,15,0,0,1,1,"Twin Radix 4 DIT C real"},                 //1
-    {2,2,14,0,0,0,1,"Split radix DIT C real"},                  //2
-    {4,0,15,0,0,1,2,"Quad Radix 4 DIT C real"},                 //3
-    {4,0,15,0,1,1,2,"Quad Radix 4 DIT SIMD real"},              //4
-    {4,0,15,0,0,0,2,"Twin Radix 4 DIT"},                        //5
-    {4,0,15,0,0,0,1,"Radix 4 DIT C"},                           //6
-    {1,1,15,0,0,0,1,"Radix 2 DIF C"},                           //7
-    {1,1,15,0,0,0,1,"Radix 2 DIF ASM"},                         //8
-    {1,1,15,0,0,0,1,"Twin radix 2 DIF ASM"},                    //9
-    {4,0,15,0,0,0,1,"Twin Radix 4 DIT C"},                      //10
-    {4,0,15,0,1,0,1,"Twin Radix 4 DIT SIMD"},                   //11
-    {4,0,15,1,0,0,1,"Twin Radix 4 DIT MMX"},                    //12
-    {4,0,15,0,0,0,1,"Quad Radix 4 DIT C"},                      //13
-    {4,0,15,1,0,0,1,"Quad Radix 4 DIT MMX"},                    //14
-    {4,0,15,0,0,0,1,"Radix 2 DIF C"},                           //15
-    {4,0,15,0,0,0,1,"Twin Radix 4 DIT C"},                      //16
-    {4,0,15,1,0,0,1,"Radix 4 DIT MMX"}
-};                        //17
+    {4,0,15,0,2,"NOT SUPPORTED: Twin Radix 4 DIT SIMD"},        // x0
+    {4,0,15,1,1,"Twin Radix 4 DIT C real"},                     //  1
+    {2,2,14,0,1,"Split radix DIT C real"},                      //  2
+    {4,0,15,1,2,"Quad Radix 4 DIT C real"},                     //  3
+    {4,0,15,1,2,"NOT SUPPORTED: Quad Radix 4 DIT SIMD real"},   // x4
+    {4,0,15,0,2,"Twin Radix 4 DIT"},                            //  5
+    {4,0,15,0,1,"Radix 4 DIT C"},                               //  6
+    {1,1,15,0,1,"Radix 2 DIF C"},                               //  7
+    {1,1,15,0,1,"NOT SUPPORTED: Radix 2 DIF ASM"},              // x8
+    {1,1,15,0,1,"NOT SUPPORTED: Twin radix 2 DIF ASM"},         // x9
+    {4,0,15,0,1,"Twin Radix 4 DIT C"},                          //  10
+    {4,0,15,0,1,"NOT SUPPORTED: Twin Radix 4 DIT SIMD"},        // x11
+    {4,0,15,0,1,"NOT SUPPORTED: Twin Radix 4 DIT MMX"},         // x12
+    {4,0,15,0,1,"Quad Radix 4 DIT C"},                          //  13
+    {4,0,15,0,1,"NOT SUPPORTED: Quad Radix 4 DIT MMX"},         // x14
+    {4,0,15,0,1,"Radix 2 DIF C"},                               //  15
+    {4,0,15,0,1,"Twin Radix 4 DIT C"},                          //  16
+    {4,0,15,0,1,"NOT SUPPORTED: Radix 4 DIT MMX"}               // x17
+};
 
 // For fft1 there are 4 input modes as defined by the
 // value of ui.input_mode&(TWO_CHANNELS+IQ_DATA)/2
@@ -67,27 +64,26 @@ FFT_SETUP_INFO fft_cntrl[MAX_FFT_VERSIONS]= {
 // permute = 2 => DIT, permute and rearrange before computing transform
 
 int fft1_version[4][MAX_FFT1_VERNR]= {
-//        0   1   2   3   4   5   6   7
-    {2,  1,  3,  4, -1, -1, -1, -1},     // 1 chan normal audio
-    {2,  1,  3,  4, -1, -1, -1, -1},     // 2 chan normal audio
-    {7,  8,  6,  5,  0, -1, -1, -1},     // 1 chan direct conversion (IQ)
-    {7,  8,  9,  6, 10, 11, -1, -1}
-};    // 2 chan direct conversion (IQ)
+//   0   1   2   3
+    {2,  1,  3, -1},     // 1 channel  normal audio
+    {2,  1,  3, -1},     // 2 channels normal audio
+    {7,  6,  5, -1},     // 1 channel  direct conversion (IQ)
+    {7,  6, 10, -1}      // 2 channels direct conversion (IQ)
+};
 
 int fft1_back_version[2][MAX_FFT1_BCKVERNR]= {
-//        0   1   2    3
-    {10, 12, -1,  -1},      // 1 chan
-    {13, 14, -1, -1}
-};     // 2 chan
+//    0   1
+    {10, -1},   // 1 channel
+    {13, -1}    // 2 channels
+};
 
 int fft2_version[2][MAX_FFT2_VERNR]= {
-//        0   1   2   3
-    {15,  6, 17, -1 },     // 1 chan
-    {15, 16, 12, -1 }
-};    // 2 chan
+//    0   1   2
+    {15,  6, -1},     // 1 channel
+    {15, 16, -1}      // 2 channels
+};
 
 double fft1_show_time;
-
 
 int timf1_mute;
 int timf1_mute_counter;
@@ -308,7 +304,6 @@ int timf1p_pc_net;
 int timf1p_pc_disk;
 int timf1p_sdr;
 
-short int *timf2_shi;
 float *timf2_float;
 float *timf2_blockpower;
 int timf2_blockpower_pa;
@@ -332,7 +327,6 @@ int timf2_output_block;
 int timf2_oscilloscope_counter;
 int timf2_oscilloscope_interval;
 int timf2_oscilloscope_maxpoint;
-int timf2_ovfl;
 int timf2_fitted_pulses;
 int timf2_cleared_points;
 int timf2_blanker_points;

@@ -494,10 +494,8 @@ void finish_rx_read(void)
     int mask2, shft;
     char *charbuf;
     short int *isho;
-    int i, j, k, m, ix, nn, mm;
-    float *za, *zb;
+    int i, j, k, m, ix;
     double dt1;
-    short int *ya, *yb;
     isho=(short int*)(void*)&timf1_char[timf1p_pa];
     if(internal_generator_flag != 0)internal_generator();
 // Here we post to the screen routine every 0.1 second.

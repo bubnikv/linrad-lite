@@ -253,7 +253,6 @@ new_mix1_n:
         blanker_info_update_interval=j;
         timf2_oscilloscope_interval=timf2_noise_floor_avgnum/10;
         if(timf2_oscilloscope_interval < 15)timf2_oscilloscope_interval=15;
-        timf2_ovfl=0;
         timf2_oscilloscope_counter=0;
         timf2_oscilloscope_maxpoint=0;
         timf2_oscilloscope_maxval_uint=0;
@@ -610,10 +609,10 @@ fft2_size_x:
     wg_last_point=fft1_size-1;
     fft1_tmp_bytes=fft1_blockbytes*(fft_cntrl[FFT1_CURMODE].real2complex+1)*
                    fft_cntrl[FFT1_CURMODE].parall_fft;
-    if(genparm[SECOND_FFT_ENABLE] != 0 && fft_cntrl[FFT1_BCKCURMODE].mmx == 0) {
-        fft1_tmp_bytes*=2;
-    }
-    if(fft1_tmp_bytes < (int)snd[RXAD].block_bytes)fft1_tmp_bytes=snd[RXAD].block_bytes;
+    if(genparm[SECOND_FFT_ENABLE] != 0)
+        fft1_tmp_bytes *= 2;
+    if(fft1_tmp_bytes < (int)snd[RXAD].block_bytes)
+        fft1_tmp_bytes=snd[RXAD].block_bytes;
 // If second fft is enabled, we will calculate the noise floor
 // in liminfo_groups segments of the entire spectrum.
 // Start by assuming 500Hz is a reasonable bandwidth to get the
@@ -671,7 +670,6 @@ void get_buffers(int filldat)
     int split_size, afcbuf_size;
     float t1;
     int *inttab;
-    short int ishort;
     afcbuf_size=0;
     sw_onechan=(ui.rx_rf_channels==1);
 // ***************************************************************
@@ -728,13 +726,7 @@ void get_buffers(int filldat)
     mem(24,&liminfo_group_min,liminfo_groups*sizeof(float),0);
     if(genparm[SECOND_FFT_ENABLE] != 0) {
         split_size=4*ui.rx_rf_channels*fft1_size;
-        swfloat=fft_cntrl[FFT1_BCKCURMODE].mmx == 0 &&
-                fft_cntrl[FFT2_CURMODE].mmx == 0;
-        if(swfloat) {
-            mem(25,&fft1_split_float, split_size*sizeof(float),0);
-        } else {
-            mem(25,&fft1_split_shi, split_size*sizeof(short int),4*sizeof(int));
-        }
+        mem(25,&fft1_split_float, split_size*sizeof(float),0);
 //  mem( 554,&fftf_tmp,(fft1_size+2*liminfo_groups)*sizeof(float),0);
         mem( 554,&fftf_tmp,fft2_size*sizeof(float),0);
         mem( 555,&fftt_tmp,fft2_size*sizeof(float),0);
@@ -752,11 +744,7 @@ void get_buffers(int filldat)
     } else {
         if( genparm[FIRST_FFT_SINPOW]!= 2) {
             if( genparm[FIRST_FFT_SINPOW]!=0 && genparm[FIRST_FFT_SINPOW]!= 2) {
-                if( fft_cntrl[FFT1_BCKCURMODE].mmx != 0) {
-                    mem(2029,&fft1_inverted_mmxwin,2*(16+fft1_size/2)*4*sizeof(short int),8);
-                } else {
-                    mem(3029,&fft1_inverted_window,(16+fft1_size/2)*sizeof(float),0);
-                }
+                mem(3029,&fft1_inverted_window,(16+fft1_size/2)*sizeof(float),0);
             }
         }
         mem(30,&fft1_backbuffer,4*ui.rx_rf_channels*fft1_size*sizeof(short int),0);
@@ -765,24 +753,15 @@ void get_buffers(int filldat)
         if(!sw_onechan) {
             mem(3926,&hg_fft2_pwr,max_fft2n*2*screen_width*sizeof(float),0);
         }
-        if(swfloat) {
-            mem(32,&timf2_float,4*ui.rx_rf_channels*timf2pow_size*sizeof(float),0);
-            if(lir_status != LIR_POWTIM) {
-                mem(33,&timf2_pwr_float,timf2pow_size*sizeof(float),0);
-            } else {
-                mem(33,&timf2_pwr_int,2*screen_width*sizeof(float),0);
-            }
+        mem(32,&timf2_float,4*ui.rx_rf_channels*timf2pow_size*sizeof(float),0);
+        if(lir_status != LIR_POWTIM) {
+            mem(33,&timf2_pwr_float,timf2pow_size*sizeof(float),0);
         } else {
-            mem(32,&timf2_shi,4*ui.rx_rf_channels*timf2pow_size*sizeof(short int),0);
-            mem(33,&timf2_pwr_int,(timf2pow_size+8)*sizeof(int),4);
+            mem(33,&timf2_pwr_int,2*screen_width*sizeof(float),0);
         }
         if(fft_cntrl[FFT1_CURMODE].permute == 2 ||
                 fft_cntrl[FFT1_CURMODE].real2complex == 1) {
             mem(34,&fft1_backtab,fft1_size*sizeof(COSIN_TABLE)/2,0);
-        }
-        if( fft_cntrl[FFT1_BCKCURMODE].mmx != 0) {
-            mem(35,&fft1_mmxcosin,
-                fft1_size*sizeof(MMX_COSIN_TABLE)/2, 8*sizeof(float));
         }
         if(sw_onechan) {
             mem(1039,&fft2_power_float,fft2_size*max_fft2n*sizeof(float),0);
@@ -792,20 +771,12 @@ void get_buffers(int filldat)
             mem(2040,&fft2_xysum,fft2_size*sizeof(TWOCHAN_POWER),0);
         }
         mem(3039,&fft2_bigpermute,fft2_size*sizeof(int),16*sizeof(int));
-        if(fft_cntrl[FFT2_CURMODE].mmx == 0) {
-            mem(1036,&fft2_float,max_fft2n*2*fft2_size*
-                ui.rx_rf_channels*sizeof(float),0);
-            mem(1037,&fft2_permute,fft2_size*sizeof(short int),0);
-            mem(1038,&fft2_tab,fft2_size*sizeof(COSIN_TABLE)/2,0);
-            if(genparm[SECOND_FFT_SINPOW] != 0) {
-                mem(1041,&fft2_window,fft2_size*sizeof(float),0);
-            }
-        } else {
-            mem(3038,&fft2_short_int,max_fft2n*2*fft2_size*
-                ui.rx_rf_channels*sizeof(short int),0);
-            mem(3040,&fft2_mmxcosin,
-                fft2_size*sizeof(MMX_COSIN_TABLE)/2, 16*sizeof(float));
-            mem(3041,&fft2_mmxwin,fft2_size*sizeof(short int),0);
+        mem(1036,&fft2_float,max_fft2n*2*fft2_size*
+            ui.rx_rf_channels*sizeof(float),0);
+        mem(1037,&fft2_permute,fft2_size*sizeof(short int),0);
+        mem(1038,&fft2_tab,fft2_size*sizeof(COSIN_TABLE)/2,0);
+        if(genparm[SECOND_FFT_SINPOW] != 0) {
+            mem(1041,&fft2_window,fft2_size*sizeof(float),0);
         }
         if( lir_status==LIR_POWTIM ||
                 (genparm[SECOND_FFT_SINPOW]!= 0 && genparm[SECOND_FFT_SINPOW]!= 2)) {
@@ -834,13 +805,8 @@ void get_buffers(int filldat)
             genparm[MAX_NO_OF_SPURS] = fftx_size/SPUR_WIDTH;
         }
         spur_block=SPUR_WIDTH*max_fftxn*twice_rxchan;
-        if(genparm[SECOND_FFT_ENABLE] !=0 && fft_cntrl[FFT2_CURMODE].mmx != 0) {
-            mem(1052,&spur_table_mmx,
-                genparm[MAX_NO_OF_SPURS]*spur_block*sizeof(short int),0);
-        } else {
-            mem(2052,&spur_table,
-                genparm[MAX_NO_OF_SPURS]*spur_block*sizeof(float),0);
-        }
+        mem(2052,&spur_table,
+            genparm[MAX_NO_OF_SPURS]*spur_block*sizeof(float),0);
         mem(53,&spur_location, genparm[MAX_NO_OF_SPURS]*sizeof(int),0);
         mem(54,&spur_flag, genparm[MAX_NO_OF_SPURS]*sizeof(int),0);
         mem(55,&spur_power, SPUR_WIDTH*sizeof(float),0);
@@ -987,11 +953,7 @@ void get_buffers(int filldat)
     } else {
         prepare_mixer(&mix1, SECOND_FFT_SINPOW);
         if( genparm[FIRST_FFT_SINPOW]!= 2) {
-            if( fft_cntrl[FFT1_BCKCURMODE].mmx != 0) {
-                make_mmxwindow(3,fft1_size, genparm[FIRST_FFT_SINPOW], fft1_inverted_mmxwin);
-            } else {
-                make_window(3,fft1_size, genparm[FIRST_FFT_SINPOW], fft1_inverted_window);
-            }
+            make_window(3,fft1_size, genparm[FIRST_FFT_SINPOW], fft1_inverted_window);
         }
         make_permute(fft_cntrl[FFT1_BCKCURMODE].permute, fft1_n,
                      fft1_size, fft1_back_scramble);
@@ -1001,53 +963,13 @@ void get_buffers(int filldat)
         } else {
             fft1_backtab=fft1tab;
         }
-        if( fft_cntrl[FFT1_BCKCURMODE].mmx != 0) {
-            init_mmxfft(fft1_size,fft1_mmxcosin);
-        }
         make_bigpermute(fft_cntrl[FFT2_CURMODE].permute,
                         fft2_n, fft2_size, fft2_bigpermute);
-        if(fft_cntrl[FFT2_CURMODE].mmx == 0) {
-            make_sincos(1, fft2_size, fft2_tab);
+        make_sincos(1, fft2_size, fft2_tab);
 // ****************************************************
-            if(genparm[SECOND_FFT_SINPOW] != 0) {
-                make_window(fft_cntrl[FFT2_CURMODE].window,fft2_size,
-                            genparm[SECOND_FFT_SINPOW], fft2_window);
-            }
-        } else {
-            if(genparm[SECOND_FFT_SINPOW] != 0) {
-                make_mmxwindow(0,fft2_size, genparm[SECOND_FFT_SINPOW], fft2_mmxwin);
-// Scramble the window so we get it in the order it will be used.
-                for(i=0; i<fft2_size; i++) {
-                    j=fft2_bigpermute[i];
-                    if(j<i) {
-                        ishort=fft2_mmxwin[i];
-                        fft2_mmxwin[i]=fft2_mmxwin[j];
-                        fft2_mmxwin[j]=ishort;
-                    }
-                }
-            }
-// Scale fft2_bigpermute so mmx routines do not have to multiply addresses.
-            if(sw_onechan) {
-                k=8;
-            } else {
-                k=16;
-            }
-            for(i=0; i<fft2_size; i++)fft2_bigpermute[i]*=k;
-// The mmx routine wants to negate the imaginary parts in the first
-// loop. Put suitable pattern for before bigpermute.
-            fft2_bigpermute[-1]=0xffff0000;
-            fft2_bigpermute[-2]=0xffff0000;
-            fft2_bigpermute[-3]=0x10000;
-            fft2_bigpermute[-4]=0x10000;
-            fft2_bigpermute[-5]=0xffff;
-            fft2_bigpermute[-6]=0xffff;
-            fft2_bigpermute[-7]=1;
-            fft2_bigpermute[-8]=1;
-            fft2_bigpermute[-9]=0xffff;
-            fft2_bigpermute[-10]=0xffff0000;
-            fft2_bigpermute[-11]=1;
-            fft2_bigpermute[-12]=0x10000;
-            init_mmxfft(fft2_size,fft2_mmxcosin);
+        if(genparm[SECOND_FFT_SINPOW] != 0) {
+            make_window(fft_cntrl[FFT2_CURMODE].window,fft2_size,
+                        genparm[SECOND_FFT_SINPOW], fft2_window);
         }
     }
 // Store bitmask for use by SIMD routine in scratch area before fft1tab
@@ -1095,17 +1017,12 @@ void get_buffers(int filldat)
     memset(timf3_float,0,2*timf3_totsiz*sizeof(float));
     memset(fft1_spectrum,-32000,screen_width*sizeof(short int));
     if(genparm[SECOND_FFT_ENABLE] != 0) {
-        if(swfloat) {
-            if(lir_status != LIR_POWTIM) {
-                for(i=0; i<timf2pow_size; i++) {
-                    timf2_pwr_float[i]=0.5;
-                }
+        if(lir_status != LIR_POWTIM) {
+            for(i=0; i<timf2pow_size; i++) {
+                timf2_pwr_float[i]=0.5;
             }
-            memset(timf2_float,0,4*ui.rx_rf_channels*timf2pow_size*sizeof(float));
-        } else {
-            for(i=0; i<timf2pow_size+8; i++)timf2_pwr_int[i]=4;
-            memset(timf2_shi,0,4*ui.rx_rf_channels*timf2pow_size*sizeof(short int));
         }
+        memset(timf2_float,0,4*ui.rx_rf_channels*timf2pow_size*sizeof(float));
     }
     memset(mg_rms_meter,0,mg_size*ui.rx_rf_channels*sizeof(float));
     memset(mg_peak_meter,0,mg_size*ui.rx_rf_channels*sizeof(float));
@@ -1205,11 +1122,7 @@ void get_buffers(int filldat)
         }
     }
     if(genparm[SECOND_FFT_ENABLE] != 0) {
-        if(fft_cntrl[FFT2_CURMODE].mmx == 0) {
-            memset(fft2_float,0,max_fft2n*2*fft2_size*ui.rx_rf_channels*sizeof(float));
-        } else {
-            memset(fft2_short_int,0,max_fft2n*2*fft2_size*ui.rx_rf_channels*sizeof(short int));
-        }
+        memset(fft2_float,0,max_fft2n*2*fft2_size*ui.rx_rf_channels*sizeof(float));
         if(sw_onechan) {
             memset(fft2_power_float,0,max_fft2n*fft2_size*sizeof(float));
         } else {
@@ -1227,10 +1140,6 @@ void get_buffers(int filldat)
     }
     wav_write_flag=0;
     audio_dump_flag=0;
-    swmmx_fft2=(genparm[SECOND_FFT_ENABLE] != 0
-                && fft_cntrl[FFT2_CURMODE].mmx != 0);
-    swmmx_fft1=(genparm[SECOND_FFT_ENABLE] != 0
-                && fft_cntrl[FFT1_BCKCURMODE].mmx != 0);
     old_passband_center=-1;
     timf1_indicator_block=timf1_bytes/INDICATOR_SIZE;
     fft1_indicator_block=(fft1_mask+1)/INDICATOR_SIZE;
@@ -1290,18 +1199,9 @@ void get_buffers(int filldat)
     PERMDEB"fft1win (N) %d, ",genparm[FIRST_FFT_SINPOW]);
     PERMDEB"mix1.size %d\n",mix1.size);
 //
-    PERMDEB"backwards fft1: ");
-    if(swfloat) {
-        PERMDEB"32 bit float");
-    } else {
-        PERMDEB"16 bit int");
-    }
+    PERMDEB"backwards fft1: 32 bit float");
     PERMDEB", fft2_size %d, ",fft2_size);
-    if(fft_cntrl[FFT2_CURMODE].mmx == 0) {
-        PERMDEB"32 bit float");
-    } else {
-        PERMDEB"16 bit int");
-    }
+    PERMDEB"32 bit float");
     PERMDEB"\ntimf3_size %d, ",timf3_size);
     PERMDEB"timf3_sampling_speed %f\n",timf3_sampling_speed);
     fflush(dmp);

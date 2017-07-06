@@ -79,18 +79,14 @@ void selfreq_liminfo(void)
         }
         t1=1/t2;
         t1*=sqrt((float)(fft2_size/fft1_size));
-        if(swfloat) {
-            if(hg.sellim_par5 == 2) {
-                t2=-1;
-            }
-            if(hg.sellim_par5 == 1) {
-                if(t1 < 0x7fff/genparm[SELLIM_MAXLEVEL])t2=0;
-            }
-            if(hg.sellim_par5 == 0) {
-                if(t1 < 0x7ffff/genparm[SELLIM_MAXLEVEL])t2=0;
-            }
-        } else {
+        if(hg.sellim_par5 == 2) {
+            t2=-1;
+        }
+        if(hg.sellim_par5 == 1) {
             if(t1 < 0x7fff/genparm[SELLIM_MAXLEVEL])t2=0;
+        }
+        if(hg.sellim_par5 == 0) {
+            if(t1 < 0x7ffff/genparm[SELLIM_MAXLEVEL])t2=0;
         }
 // If the signal is really strong, allow the limiter to work as usual
 // with the same gain over the whole baseband.

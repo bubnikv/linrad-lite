@@ -959,15 +959,6 @@ good_poldata:
         j=((last_point-baseb_pm+baseband_mask)&baseband_mask)/mg.avgnum;
         if(j > 0) {
             sellim_correction=1;
-            if(genparm[SECOND_FFT_ENABLE] != 0) {
-                if(!swfloat && mix1_selfreq[0]>=0) {
-                    ia=mix1_selfreq[0]*fftx_points_per_hz;
-                    ia/=fft2_to_fft1_ratio;
-                    if(liminfo[ia]>0) {
-                        sellim_correction=1/pow(liminfo[ia],2.0);
-                    }
-                }
-            }
             fac=baseband_pwrfac*sellim_correction;
             if(timf2_blockpower_px == -1) {
                 i=(int)((float)fft3_size*timf3_sampling_speed/timf1_sampling_speed);

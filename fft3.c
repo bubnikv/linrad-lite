@@ -172,13 +172,8 @@ void make_fft3_all(void)
                     fft3_tmp[ib  ]=fft3_tab[ia].cos*x1+fft3_tab[ia].sin*x2;
                     fft3_tmp[ib+1]=fft3_tab[ia].sin*x1-fft3_tab[ia].cos*x2;
                 }
-#if IA64 == 0 && CPU == CPU_INTEL
-                asmbulk_of_dif(fft3_size, fft3_n,
-                               fft3_tmp, fft3_tab, yieldflag_ndsp_fft3);
-#else
                 bulk_of_dif(fft3_size, fft3_n,
                             fft3_tmp, fft3_tab, yieldflag_ndsp_fft3);
-#endif
                 for(ia=0; ia < fft3_size; ia+=2) {
                     ib=2*fft3_permute[ia];
                     ic=2*fft3_permute[ia+1];
@@ -216,13 +211,8 @@ void make_fft3_all(void)
                     fft3_tmp[2*ib+2]=fft3_tab[ia].cos*x1+fft3_tab[ia].sin*x2;
                     fft3_tmp[2*ib+3]=fft3_tab[ia].sin*x1-fft3_tab[ia].cos*x2;
                 }
-#if IA64 == 0 && CPU == CPU_INTEL
-                asmbulk_of_dual_dif(fft3_size, fft3_n,
-                                    fft3_tmp, fft3_tab, yieldflag_ndsp_fft3);
-#else
                 bulk_of_dual_dif(fft3_size, fft3_n,
                                  fft3_tmp, fft3_tab, yieldflag_ndsp_fft3);
-#endif
                 for(ia=0; ia < fft3_size; ia+=2) {
                     ib=4*fft3_permute[ia  ];
                     ic=4*fft3_permute[ia+1];

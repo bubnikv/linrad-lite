@@ -175,63 +175,8 @@ void show_amp_info(void)
         lir_text(k,line,s);
         k+=6;
     }
-    if(rx_mode == MODE_TXTEST)return;
-    if( genparm[SECOND_FFT_ENABLE] != 0 ) {
-        if(swmmx_fft2) {
-            line--;
-            k=10;
-            for(i=0; i<ui.rx_rf_channels; i++) {
-                t1=fft2_maxamp[i];
-                if(t1<1)t1=1;
-                t1/=0x8000;
-                t1=-20*log10(t1);
-                sprintf(s,"%2.2f ",t1);
-                lir_text(k,line,s);
-                k+=6;
-            }
-        }
-        if(swmmx_fft1) {
-            line--;
-            k=10;
-            for(i=0; i<ui.rx_rf_channels; i++) {
-                t1=timf2_maxamp[i];
-                if(t1<1)t1=1;
-                t1/=0x8000;
-                t1=-20*log10(t1);
-                sprintf(s,"%2.2f ",t1);
-                lir_text(k,line,s);
-                k+=6;
-            }
-            line--;
-            k=10;
-            for(i=0; i<ui.rx_rf_channels; i++) {
-                t1=timf2_maxamp[MAX_RX_CHANNELS+i];
-                if(t1<1)t1=1;
-                t1/=0x8000;
-                t1=-20*log10(t1);
-                sprintf(s,"%2.2f ",t1);
-                lir_text(k,line,s);
-                k+=6;
-            }
-            line-=2;
-            k=10;
-            for(i=0; i<ui.rx_rf_channels; i++) {
-                t1=fft1_maxamp[2*i];
-                if(t1<1)t1=1;
-                t1/=0x8000;
-                t1=-20*log10(t1);
-                sprintf(s,"%2.2f ",t1);
-                lir_text(k,line+1,s);
-                t1=fft1_maxamp[2*i+1];
-                if(t1<1)t1=1;
-                t1/=0x8000;
-                t1=-20*log10(t1);
-                sprintf(s,"%2.2f ",t1);
-                lir_text(k,line,s);
-                k+=6;
-            }
-        }
-    }
+    if(rx_mode == MODE_TXTEST)
+        return;
 }
 
 void clear_timinfo_lines(char color)
@@ -286,22 +231,6 @@ void amp_info_texts(void)
     }
     line--;
     lir_text(0,line,"A/D");
-    if( genparm[SECOND_FFT_ENABLE] != 0 ) {
-        if(swmmx_fft2) {
-            line--;
-            lir_text(4,line,"fft2");
-        }
-        if(swmmx_fft1) {
-            line--;
-            lir_text(0,line,"timf2 Wk");
-            line--;
-            lir_text(0,line,"timf2 St");
-            line--;
-            lir_text(2,line,"fft1 Wk");
-            line--;
-            lir_text(2,line,"fft1 St");
-        }
-    }
     line--;
     lir_text(0,line,"Amplitude margins (dB)");
 }

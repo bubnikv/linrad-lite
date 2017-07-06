@@ -116,8 +116,6 @@ extern FILE *dmp1;
 extern FILE *sndlog;
 extern FILE *wav_file;
 
-extern int mmx_present;
-extern int simd_present;
 extern ROUTINE par_from_keyboard_routine;
 
 extern float baseband_bw_hz;
@@ -219,12 +217,19 @@ extern int mailbox[];
 extern char *rxpar_filenames[MAX_RX_MODE];
 extern char *rxmodes[MAX_RX_MODE];
 extern char newcomer_rx_modes[MAX_RX_MODE];
+
+// Parameters of an active receiver, mode specific.
 extern int genparm[MAX_GENPARM+2];
+// Minimum / maximum receiver parameters.
 extern int genparm_min[MAX_GENPARM];
 extern int genparm_max[MAX_GENPARM];
+// Default mode specific receiver parameters.
 extern int genparm_default[MAX_RX_MODE][MAX_GENPARM];
+// Labels of the receiver parameters.
 extern char *genparm_text[MAX_GENPARM+2];
+// Boolean table marking the receiver parameters to be modified by a newcomer.
 extern char newco_genparm[MAX_GENPARM];
+
 extern char modes_man_auto[3];
 extern MEM_INF fft1mem[MAX_FFT1_ARRAYS];
 extern MEM_INF fft3mem[MAX_FFT3_ARRAYS];
@@ -241,9 +246,6 @@ extern int calibrate_flag;
 extern double old_passband_center;
 extern int wav_write_flag;
 extern int wav_read_flag;
-extern int swmmx_fft2;
-extern int swmmx_fft1;
-extern int swfloat;
 extern int sw_onechan;
 extern int eme_flag;
 extern char *press_any_key;
@@ -313,8 +315,6 @@ void init_d_fft(int i,int n, int size,
 void init_big_fft(int i,int n, int size,
                   COSIN_TABLE *tab, unsigned int *permute);
 
-void init_mmxfft(int size, MMX_COSIN_TABLE *tab);
-void make_mmxwindow(int mo, int size, int n, short int *x);
 void fftback(int sz, int n, float *x,
              COSIN_TABLE *sc, unsigned short int *pm, int yieldflag);
 void dual_fftback(int sz, int n, float *x,
@@ -329,15 +329,10 @@ void d_fftforward(int sz, int n, double *x,
                   D_COSIN_TABLE *sc, unsigned short int *pm);
 void fft_iqshift(int size, float *x);
 void fft_real_to_hermitian( float *z, int size, int n, COSIN_TABLE *tab);
-void asmbulk_of_dual_dif(int size, int n, float *x,
-                         COSIN_TABLE *sincos, int yieldflag);
-void asmbulk_of_dif(int size, int n, float *x,
-                    COSIN_TABLE *sincos, int yieldflag);
 void bulk_of_dif(int size, int n, float *x, COSIN_TABLE *sincos, int yieldflag);
 void bulk_of_dual_dif(int size, int n, float *x, COSIN_TABLE *sincos, int yieldflag);
 void bulk_of_dit(int size, int n, float *x, COSIN_TABLE *sincos, int yieldflag);
 void bulk_of_dual_dit(int size, int n, float *x, COSIN_TABLE *sincos, int yieldflag);
-void simdbulk_of_dual_dit(int size, int n, float *x, COSIN_TABLE *sincos);
 void get_buffers(int filldat);
 void get_wideband_sizes(void);
 int adjust_scale(double *step);

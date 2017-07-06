@@ -1009,8 +1009,6 @@ skip_chunk:
 // Look for Perseus or SDR-14 headers.
     errnr=12;
     remember_proprietery_chunk[0]=REMEMBER_NOTHING;
-next_chunk:
-    ;
     k=fread(&si,sizeof(int),1,save_rd_file);
     if(k !=1 )goto headerr;
     errnr=15;
@@ -1695,7 +1693,7 @@ void show_specific_dev(char *name_string, int *line)
 
 int show_rx_input_settings(int *line)
 {
-    char s[80],ss[80];
+    char s[80];
     char *specific_dev;
     int retcode;
     lir_text(2,line[0],"Linrad RX input from:");
@@ -1758,7 +1756,7 @@ case RTL2832_DEVICE_CODE:
 void display_rx_input_source(char *retmsg)
 {
     char *sdrnam;
-    char ss[80], st[80];
+    char ss[80];
     sdrnam=NULL;
     ss[0]=0;
     switch(ui.rx_addev_no) {

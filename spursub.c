@@ -318,7 +318,6 @@ void initial_remove_spur(void)
     float freq;
     float phase_slope,phase_curv;
     float *z;
-    short int *zmmx;
 // PLL was sucessful. We now have a "local oscillator"
 // that is locked to the spur. The LO is characterised
 // by phase and amplitude parameters.
@@ -354,18 +353,10 @@ void initial_remove_spur(void)
                 t1=a1;
                 t2=a2;
             }
-            if(swmmx_fft2) {
-                zmmx=&fft2_short_int[twice_rxchan*(ni*fft2_size+pnt)];
-                for(i=0; i<SPUR_WIDTH; i++) {
-                    zmmx[2*i  ]-=spur_spectra[ind+i]*t1;
-                    zmmx[2*i+1]-=spur_spectra[ind+i]*t2;
-                }
-            } else {
-                z=&fftx[twice_rxchan*(ni*fftx_size+pnt)];
-                for(i=0; i<SPUR_WIDTH; i++) {
-                    z[2*i  ]-=spur_spectra[ind+i]*t1;
-                    z[2*i+1]-=spur_spectra[ind+i]*t2;
-                }
+            z=&fftx[twice_rxchan*(ni*fftx_size+pnt)];
+            for(i=0; i<SPUR_WIDTH; i++) {
+                z[2*i  ]-=spur_spectra[ind+i]*t1;
+                z[2*i+1]-=spur_spectra[ind+i]*t2;
             }
         } else {
             if((j^(spur_location[spurno]&1))==1) {
@@ -379,22 +370,12 @@ void initial_remove_spur(void)
                 t3=sp_c2*a1-sp_c3*a2;
                 t4=sp_c2*a2+sp_c3*a1;
             }
-            if(swmmx_fft2) {
-                zmmx=&fft2_short_int[twice_rxchan*(ni*fft2_size+pnt)];
-                for(i=0; i<SPUR_WIDTH; i++) {
-                    zmmx[4*i  ]-=spur_spectra[ind+i]*t1;
-                    zmmx[4*i+1]-=spur_spectra[ind+i]*t2;
-                    zmmx[4*i+2]-=spur_spectra[ind+i]*t3;
-                    zmmx[4*i+3]-=spur_spectra[ind+i]*t4;
-                }
-            } else {
-                z=&fftx[twice_rxchan*(ni*fftx_size+pnt)];
-                for(i=0; i<SPUR_WIDTH; i++) {
-                    z[4*i  ]-=spur_spectra[ind+i]*t1;
-                    z[4*i+1]-=spur_spectra[ind+i]*t2;
-                    z[4*i+2]-=spur_spectra[ind+i]*t3;
-                    z[4*i+3]-=spur_spectra[ind+i]*t4;
-                }
+            z=&fftx[twice_rxchan*(ni*fftx_size+pnt)];
+            for(i=0; i<SPUR_WIDTH; i++) {
+                z[4*i  ]-=spur_spectra[ind+i]*t1;
+                z[4*i+1]-=spur_spectra[ind+i]*t2;
+                z[4*i+2]-=spur_spectra[ind+i]*t3;
+                z[4*i+3]-=spur_spectra[ind+i]*t4;
             }
         }
         ni=(ni+fftxn_mask)&fftxn_mask;
@@ -547,7 +528,6 @@ int store_new_spur(int pnt)
 {
     int i, k, np;
     float t1;
-    short int *zmmx;
     float *z, *pwra;
     TWOCHAN_POWER *pxy;
     spur_flag[spurno]=0;
@@ -555,87 +535,44 @@ int store_new_spur(int pnt)
 // accumulate power spectrum.
     spurp0=spurno*spur_block;
     np=(ffts_na-spur_speknum+max_fftxn)&fftxn_mask;
-    if(swmmx_fft2) {
-        if(sw_onechan) {
+    if(sw_onechan) {
 // With one channel only, just use the power spectrum.
-            for(i=0; i<SPUR_WIDTH; i++)spur_power[i]=0;
-            while(np != ffts_na) {
-                k=spurp0+np*SPUR_WIDTH*twice_rxchan;
-                zmmx=&fft2_short_int[twice_rxchan*(np*fft2_size+pnt)];
-                pwra=&fftx_pwr[np*fftx_size+pnt];
-                for(i=0; i<SPUR_WIDTH; i++) {
-                    spur_table_mmx[2*i+k  ]=zmmx[2*i  ];
-                    spur_table_mmx[2*i+k+1]=zmmx[2*i+1];
-                    spur_power[i]+=pwra[i];
-                }
-                np=(np+1)&fftxn_mask;
-            }
-        } else { //ui.rx_channels = 2
-// We have two channels and polarization is unknown.
-// First make an average of channel powers and correlations.
+        for(i=0; i<SPUR_WIDTH; i++)spur_power[i]=0;
+        while(np != ffts_na) {
+            k=spurp0+np*SPUR_WIDTH*twice_rxchan;
+            z=&fftx[twice_rxchan*(np*fftx_size+pnt)];
+            pwra=&fftx_pwr[np*fftx_size+pnt];
             for(i=0; i<SPUR_WIDTH; i++) {
-                spur_pxy[i].x2=0;
-                spur_pxy[i].y2=0;
-                spur_pxy[i].re_xy=0;
-                spur_pxy[i].im_xy=0;
+                spur_table[2*i+k  ]=z[2*i  ];
+                spur_table[2*i+k+1]=z[2*i+1];
+                spur_power[i]+=pwra[i];
             }
-            while(np != ffts_na) {
-                pxy=(TWOCHAN_POWER*)(&fftx_xypower[np*fftx_size+pnt].x2);
-                k=spurp0+np*SPUR_WIDTH*twice_rxchan;
-                zmmx=&fft2_short_int[twice_rxchan*(np*fft2_size+pnt)];
-                for(i=0; i<SPUR_WIDTH; i++) {
-                    spur_table_mmx[4*i+k  ]=zmmx[4*i  ];
-                    spur_table_mmx[4*i+k+1]=zmmx[4*i+1];
-                    spur_table_mmx[4*i+k+2]=zmmx[4*i+2];
-                    spur_table_mmx[4*i+k+3]=zmmx[4*i+3];
-                    spur_pxy[i].x2+=pxy[i].x2;
-                    spur_pxy[i].y2+=pxy[i].y2;
-                    spur_pxy[i].re_xy+=pxy[i].re_xy;
-                    spur_pxy[i].im_xy+=pxy[i].im_xy;
-                }
-                np=(np+1)&fftxn_mask;
-            }
+            np=(np+1)&fftxn_mask;
         }
-    } else {
-        if(sw_onechan) {
-// With one channel only, just use the power spectrum.
-            for(i=0; i<SPUR_WIDTH; i++)spur_power[i]=0;
-            while(np != ffts_na) {
-                k=spurp0+np*SPUR_WIDTH*twice_rxchan;
-                z=&fftx[twice_rxchan*(np*fftx_size+pnt)];
-                pwra=&fftx_pwr[np*fftx_size+pnt];
-                for(i=0; i<SPUR_WIDTH; i++) {
-                    spur_table[2*i+k  ]=z[2*i  ];
-                    spur_table[2*i+k+1]=z[2*i+1];
-                    spur_power[i]+=pwra[i];
-                }
-                np=(np+1)&fftxn_mask;
-            }
-        } else { //ui.rx_channels = 2
+    } else { //ui.rx_channels = 2
 // We have two channels and polarization is unknown.
 // First make an average of channel powers and correlations.
+        for(i=0; i<SPUR_WIDTH; i++) {
+            spur_pxy[i].x2=0;
+            spur_pxy[i].y2=0;
+            spur_pxy[i].re_xy=0;
+            spur_pxy[i].im_xy=0;
+        }
+        while(np != ffts_na) {
+            pxy=(TWOCHAN_POWER*)(&fftx_xypower[np*fftx_size+pnt].x2);
+            k=spurp0+np*SPUR_WIDTH*twice_rxchan;
+            z=&fftx[twice_rxchan*(np*fftx_size+pnt)];
             for(i=0; i<SPUR_WIDTH; i++) {
-                spur_pxy[i].x2=0;
-                spur_pxy[i].y2=0;
-                spur_pxy[i].re_xy=0;
-                spur_pxy[i].im_xy=0;
+                spur_table[4*i+k  ]=z[4*i  ];
+                spur_table[4*i+k+1]=z[4*i+1];
+                spur_table[4*i+k+2]=z[4*i+2];
+                spur_table[4*i+k+3]=z[4*i+3];
+                spur_pxy[i].x2+=pxy[i].x2;
+                spur_pxy[i].y2+=pxy[i].y2;
+                spur_pxy[i].re_xy+=pxy[i].re_xy;
+                spur_pxy[i].im_xy+=pxy[i].im_xy;
             }
-            while(np != ffts_na) {
-                pxy=(TWOCHAN_POWER*)(&fftx_xypower[np*fftx_size+pnt].x2);
-                k=spurp0+np*SPUR_WIDTH*twice_rxchan;
-                z=&fftx[twice_rxchan*(np*fftx_size+pnt)];
-                for(i=0; i<SPUR_WIDTH; i++) {
-                    spur_table[4*i+k  ]=z[4*i  ];
-                    spur_table[4*i+k+1]=z[4*i+1];
-                    spur_table[4*i+k+2]=z[4*i+2];
-                    spur_table[4*i+k+3]=z[4*i+3];
-                    spur_pxy[i].x2+=pxy[i].x2;
-                    spur_pxy[i].y2+=pxy[i].y2;
-                    spur_pxy[i].re_xy+=pxy[i].re_xy;
-                    spur_pxy[i].im_xy+=pxy[i].im_xy;
-                }
-                np=(np+1)&fftxn_mask;
-            }
+            np=(np+1)&fftxn_mask;
         }
     }
     if(sw_onechan) {
@@ -659,7 +596,6 @@ int store_new_spur(int pnt)
 void swap_spurs(int ia, int ib)
 {
     int i, k;
-    short int m;
     float t1;
     k=spur_flag[ia];
     spur_flag[ia]=spur_flag[ib];
@@ -691,19 +627,10 @@ void swap_spurs(int ia, int ib)
     t1=spur_freq[ia];
     spur_freq[ia]=spur_freq[ib];
     spur_freq[ib]=t1;
-    if(swmmx_fft2) {
-        for(i=0; i<spur_block; i++) {
-            m=spur_table_mmx[ia*spur_block+i];
-            spur_table_mmx[ia*spur_block+i]=
-                spur_table_mmx[ib*spur_block+i];
-            spur_table_mmx[ib*spur_block+i]=m;
-        }
-    } else {
-        for(i=0; i<spur_block; i++) {
-            t1=spur_table[ia*spur_block+i];
-            spur_table[ia*spur_block+i]=spur_table[ib*spur_block+i];
-            spur_table[ib*spur_block+i]=t1;
-        }
+    for(i=0; i<spur_block; i++) {
+        t1=spur_table[ia*spur_block+i];
+        spur_table[ia*spur_block+i]=spur_table[ib*spur_block+i];
+        spur_table[ib*spur_block+i]=t1;
     }
     for(i=0; i<twice_rxchan*max_fftxn; i++) {
         t1=spur_signal[twice_rxchan*max_fftxn*ia+i];
@@ -959,119 +886,59 @@ void shift_spur_table(int j)
     }
     ni=(ffts_na-spur_speknum+max_fftxn)&fftxn_mask;
     if(sw_onechan) {
-        if(swmmx_fft2) {
-            if(shift == 1) {
-                while(ni != nj) {
-                    knd=spurp0+ni*SPUR_WIDTH*twice_rxchan;
-                    for(i=1; i<SPUR_WIDTH; i++) {
-                        spur_table_mmx[2*i+knd-2]=spur_table_mmx[2*i+knd  ];
-                        spur_table_mmx[2*i+knd-1]=spur_table_mmx[2*i+knd+1];
-                    }
-                    spur_table_mmx[knd+2*SPUR_WIDTH-2]=0;
-                    spur_table_mmx[knd+2*SPUR_WIDTH-1]=0;
-                    ni=(ni+1)&fftxn_mask;
+        if(shift == 1) {
+            while(ni != nj) {
+                knd=spurp0+ni*SPUR_WIDTH*twice_rxchan;
+                for(i=1; i<SPUR_WIDTH; i++) {
+                    spur_table[2*i+knd-2]=spur_table[2*i+knd  ];
+                    spur_table[2*i+knd-1]=spur_table[2*i+knd+1];
                 }
-            } else {
-                while(ni != nj) {
-                    knd=spurp0+ni*SPUR_WIDTH*twice_rxchan;
-                    for(i=SPUR_WIDTH-1; i>0; i--) {
-                        spur_table_mmx[2*i+knd  ]=spur_table_mmx[2*i+knd-2];
-                        spur_table_mmx[2*i+knd+1]=spur_table_mmx[2*i+knd-1];
-                    }
-                    spur_table_mmx[knd  ]=0;
-                    spur_table_mmx[knd+1]=0;
-                    ni=(ni+1)&fftxn_mask;
-                }
+                spur_table[knd+2*SPUR_WIDTH-2]=0;
+                spur_table[knd+2*SPUR_WIDTH-1]=0;
+                ni=(ni+1)&fftxn_mask;
             }
         } else {
-            if(shift == 1) {
-                while(ni != nj) {
-                    knd=spurp0+ni*SPUR_WIDTH*twice_rxchan;
-                    for(i=1; i<SPUR_WIDTH; i++) {
-                        spur_table[2*i+knd-2]=spur_table[2*i+knd  ];
-                        spur_table[2*i+knd-1]=spur_table[2*i+knd+1];
-                    }
-                    spur_table[knd+2*SPUR_WIDTH-2]=0;
-                    spur_table[knd+2*SPUR_WIDTH-1]=0;
-                    ni=(ni+1)&fftxn_mask;
+            while(ni != nj) {
+                knd=spurp0+ni*SPUR_WIDTH*twice_rxchan;
+                for(i=SPUR_WIDTH-1; i>0; i--) {
+                    spur_table[2*i+knd  ]=spur_table[2*i+knd-2];
+                    spur_table[2*i+knd+1]=spur_table[2*i+knd-1];
                 }
-            } else {
-                while(ni != nj) {
-                    knd=spurp0+ni*SPUR_WIDTH*twice_rxchan;
-                    for(i=SPUR_WIDTH-1; i>0; i--) {
-                        spur_table[2*i+knd  ]=spur_table[2*i+knd-2];
-                        spur_table[2*i+knd+1]=spur_table[2*i+knd-1];
-                    }
-                    spur_table[knd  ]=0;
-                    spur_table[knd+1]=0;
-                    ni=(ni+1)&fftxn_mask;
-                }
+                spur_table[knd  ]=0;
+                spur_table[knd+1]=0;
+                ni=(ni+1)&fftxn_mask;
             }
         }
     } else {
-        if(swmmx_fft2) {
-            if(shift == 1) {
-                while(ni != nj) {
-                    knd=spurp0+ni*SPUR_WIDTH*twice_rxchan;
-                    for(i=1; i<SPUR_WIDTH; i++) {
-                        spur_table_mmx[4*i+knd-4]=spur_table_mmx[4*i+knd  ];
-                        spur_table_mmx[4*i+knd-3]=spur_table_mmx[4*i+knd+1];
-                        spur_table_mmx[4*i+knd-2]=spur_table_mmx[4*i+knd+2];
-                        spur_table_mmx[4*i+knd-1]=spur_table_mmx[4*i+knd+3];
-                    }
-                    spur_table_mmx[knd+4*SPUR_WIDTH-4]=0;
-                    spur_table_mmx[knd+4*SPUR_WIDTH-3]=0;
-                    spur_table_mmx[knd+4*SPUR_WIDTH-2]=0;
-                    spur_table_mmx[knd+4*SPUR_WIDTH-1]=0;
-                    ni=(ni+1)&fftxn_mask;
+        if(shift == 1) {
+            while(ni != nj) {
+                knd=spurp0+ni*SPUR_WIDTH*twice_rxchan;
+                for(i=1; i<SPUR_WIDTH; i++) {
+                    spur_table[4*i+knd-4]=spur_table[4*i+knd  ];
+                    spur_table[4*i+knd-3]=spur_table[4*i+knd+1];
+                    spur_table[4*i+knd-2]=spur_table[4*i+knd+2];
+                    spur_table[4*i+knd-1]=spur_table[4*i+knd+3];
                 }
-            } else {
-                while(ni != nj) {
-                    knd=spurp0+ni*SPUR_WIDTH*twice_rxchan;
-                    for(i=SPUR_WIDTH-1; i>0; i--) {
-                        spur_table_mmx[4*i+knd  ]=spur_table_mmx[4*i+knd-4];
-                        spur_table_mmx[4*i+knd+1]=spur_table_mmx[4*i+knd-3];
-                        spur_table_mmx[4*i+knd+2]=spur_table_mmx[4*i+knd-2];
-                        spur_table_mmx[4*i+knd+3]=spur_table_mmx[4*i+knd-1];
-                    }
-                    spur_table_mmx[knd  ]=0;
-                    spur_table_mmx[knd+1]=0;
-                    spur_table_mmx[knd+2]=0;
-                    spur_table_mmx[knd+3]=0;
-                    ni=(ni+1)&fftxn_mask;
-                }
+                spur_table[knd+4*SPUR_WIDTH-4]=0;
+                spur_table[knd+4*SPUR_WIDTH-3]=0;
+                spur_table[knd+4*SPUR_WIDTH-2]=0;
+                spur_table[knd+4*SPUR_WIDTH-1]=0;
+                ni=(ni+1)&fftxn_mask;
             }
         } else {
-            if(shift == 1) {
-                while(ni != nj) {
-                    knd=spurp0+ni*SPUR_WIDTH*twice_rxchan;
-                    for(i=1; i<SPUR_WIDTH; i++) {
-                        spur_table[4*i+knd-4]=spur_table[4*i+knd  ];
-                        spur_table[4*i+knd-3]=spur_table[4*i+knd+1];
-                        spur_table[4*i+knd-2]=spur_table[4*i+knd+2];
-                        spur_table[4*i+knd-1]=spur_table[4*i+knd+3];
-                    }
-                    spur_table[knd+4*SPUR_WIDTH-4]=0;
-                    spur_table[knd+4*SPUR_WIDTH-3]=0;
-                    spur_table[knd+4*SPUR_WIDTH-2]=0;
-                    spur_table[knd+4*SPUR_WIDTH-1]=0;
-                    ni=(ni+1)&fftxn_mask;
+            while(ni != nj) {
+                knd=spurp0+ni*SPUR_WIDTH*twice_rxchan;
+                for(i=SPUR_WIDTH-1; i>0; i--) {
+                    spur_table[4*i+knd  ]=spur_table[4*i+knd-4];
+                    spur_table[4*i+knd+1]=spur_table[4*i+knd-3];
+                    spur_table[4*i+knd+2]=spur_table[4*i+knd-2];
+                    spur_table[4*i+knd+3]=spur_table[4*i+knd-1];
                 }
-            } else {
-                while(ni != nj) {
-                    knd=spurp0+ni*SPUR_WIDTH*twice_rxchan;
-                    for(i=SPUR_WIDTH-1; i>0; i--) {
-                        spur_table[4*i+knd  ]=spur_table[4*i+knd-4];
-                        spur_table[4*i+knd+1]=spur_table[4*i+knd-3];
-                        spur_table[4*i+knd+2]=spur_table[4*i+knd-2];
-                        spur_table[4*i+knd+3]=spur_table[4*i+knd-1];
-                    }
-                    spur_table[knd  ]=0;
-                    spur_table[knd+1]=0;
-                    spur_table[knd+2]=0;
-                    spur_table[knd+3]=0;
-                    ni=(ni+1)&fftxn_mask;
-                }
+                spur_table[knd  ]=0;
+                spur_table[knd+1]=0;
+                spur_table[knd+2]=0;
+                spur_table[knd+3]=0;
+                ni=(ni+1)&fftxn_mask;
             }
         }
     }
@@ -1096,129 +963,65 @@ int spur_phase_lock(int nx)
     izz=0;
     nn=(nx-spur_speknum+max_fftxn)&fftxn_mask;
     np=nn;
-    if(swmmx_fft2) {
-        if(sw_onechan) {
-            while(np != nx) {
-                k=spurp0+np*SPUR_WIDTH*twice_rxchan;
-                t1=0;
-                t2=0;
-                for(i=0; i<SPUR_WIDTH-1; i+=2) {
-                    t1+=spur_power[i]*spur_table_mmx[2*i+k  ]-
-                        spur_power[i+1]*spur_table_mmx[2*i+k+2];
-                    t2+=spur_power[i]*spur_table_mmx[2*i+k+1]-
-                        spur_power[i+1]*spur_table_mmx[2*i+k+3];
-                }
-                if((spur_location[spurno]&1)==1) {
-                    t1=-t1;
-                    t2=-t2;
-                }
-                zsig[2*np  ]=t1;
-                zsig[2*np+1]=t2;
-                sp_sig[2*izz  ]=t1;
-                sp_sig[2*izz+1]=t2;
-                izz++;
-                np=(np+1)&fftxn_mask;
+    if(sw_onechan) {
+        while(np != nx) {
+            k=spurp0+np*SPUR_WIDTH*twice_rxchan;
+            t1=0;
+            t2=0;
+            for(i=0; i<SPUR_WIDTH-1; i+=2) {
+                t1+=spur_power[i]*spur_table[2*i+k  ]-
+                    spur_power[i+1]*spur_table[2*i+k+2];
+                t2+=spur_power[i]*spur_table[2*i+k+1]-
+                    spur_power[i+1]*spur_table[2*i+k+3];
             }
-        } else {
-            while(np != nx) {
-                k=spurp0+np*SPUR_WIDTH*twice_rxchan;
-                t1=0;
-                t2=0;
-                t3=0;
-                t4=0;
-                for(i=0; i<SPUR_WIDTH-1; i+=2) {
-                    t1+=spur_power[i  ]*spur_table_mmx[4*i+k  ]-
-                        spur_power[i+1]*spur_table_mmx[4*i+k+4];
-                    t2+=spur_power[i  ]*spur_table_mmx[4*i+k+1]-
-                        spur_power[i+1]*spur_table_mmx[4*i+k+5];
-                    t3+=spur_power[i  ]*spur_table_mmx[4*i+k+2]-
-                        spur_power[i+1]*spur_table_mmx[4*i+k+6];
-                    t4+=spur_power[i  ]*spur_table_mmx[4*i+k+3]-
-                        spur_power[i+1]*spur_table_mmx[4*i+k+7];
-                }
-                if((spur_location[spurno]&1)==1) {
-                    r1=-sp_c1*t1-sp_c2*t3-sp_c3*t4;
-                    r2=-sp_c1*t2-sp_c2*t4+sp_c3*t3;
-                    r3=-sp_c1*t3+sp_c2*t1-sp_c3*t2;
-                    r4=-sp_c1*t4+sp_c2*t2+sp_c3*t1;
-                } else {
-                    r1=sp_c1*t1+sp_c2*t3+sp_c3*t4;
-                    r2=sp_c1*t2+sp_c2*t4-sp_c3*t3;
-                    r3=sp_c1*t3-sp_c2*t1+sp_c3*t2;
-                    r4=sp_c1*t4-sp_c2*t2-sp_c3*t1;
-                }
-                zsig[4*np  ]=r1;
-                zsig[4*np+1]=r2;
-                zsig[4*np+2]=r3;
-                zsig[4*np+3]=r4;
-                sp_sig[2*izz  ]=r1;
-                sp_sig[2*izz+1]=r2;
-//if(mailbox[1]==1)fprintf( dmp,"\nA sp_sig  %f %f   %f %f",r1,r2,r3,r4);
-                izz++;
-                np=(np+1)&fftxn_mask;
+            if((spur_location[spurno]&1)==1) {
+                t1=-t1;
+                t2=-t2;
             }
+            zsig[2*np  ]=t1;
+            zsig[2*np+1]=t2;
+            sp_sig[2*izz  ]=t1;
+            sp_sig[2*izz+1]=t2;
+            izz++;
+            np=(np+1)&fftxn_mask;
         }
     } else {
-        if(sw_onechan) {
-            while(np != nx) {
-                k=spurp0+np*SPUR_WIDTH*twice_rxchan;
-                t1=0;
-                t2=0;
-                for(i=0; i<SPUR_WIDTH-1; i+=2) {
-                    t1+=spur_power[i]*spur_table[2*i+k  ]-
-                        spur_power[i+1]*spur_table[2*i+k+2];
-                    t2+=spur_power[i]*spur_table[2*i+k+1]-
-                        spur_power[i+1]*spur_table[2*i+k+3];
-                }
-                if((spur_location[spurno]&1)==1) {
-                    t1=-t1;
-                    t2=-t2;
-                }
-                zsig[2*np  ]=t1;
-                zsig[2*np+1]=t2;
-                sp_sig[2*izz  ]=t1;
-                sp_sig[2*izz+1]=t2;
-                izz++;
-                np=(np+1)&fftxn_mask;
+        while(np != nx) {
+            k=spurp0+np*SPUR_WIDTH*twice_rxchan;
+            t1=0;
+            t2=0;
+            t3=0;
+            t4=0;
+            for(i=0; i<SPUR_WIDTH-1; i+=2) {
+                t1+=spur_power[i]*spur_table[4*i+k  ]-
+                    spur_power[i+1]*spur_table[4*i+k+4];
+                t2+=spur_power[i]*spur_table[4*i+k+1]-
+                    spur_power[i+1]*spur_table[4*i+k+5];
+                t3+=spur_power[i]*spur_table[4*i+k+2]-
+                    spur_power[i+1]*spur_table[4*i+k+6];
+                t4+=spur_power[i]*spur_table[4*i+k+3]-
+                    spur_power[i+1]*spur_table[4*i+k+7];
             }
-        } else {
-            while(np != nx) {
-                k=spurp0+np*SPUR_WIDTH*twice_rxchan;
-                t1=0;
-                t2=0;
-                t3=0;
-                t4=0;
-                for(i=0; i<SPUR_WIDTH-1; i+=2) {
-                    t1+=spur_power[i]*spur_table[4*i+k  ]-
-                        spur_power[i+1]*spur_table[4*i+k+4];
-                    t2+=spur_power[i]*spur_table[4*i+k+1]-
-                        spur_power[i+1]*spur_table[4*i+k+5];
-                    t3+=spur_power[i]*spur_table[4*i+k+2]-
-                        spur_power[i+1]*spur_table[4*i+k+6];
-                    t4+=spur_power[i]*spur_table[4*i+k+3]-
-                        spur_power[i+1]*spur_table[4*i+k+7];
-                }
-                if((spur_location[spurno]&1)==1) {
-                    r1=-sp_c1*t1-sp_c2*t3-sp_c3*t4;
-                    r2=-sp_c1*t2-sp_c2*t4+sp_c3*t3;
-                    r3=-sp_c1*t3+sp_c2*t1-sp_c3*t2;
-                    r4=-sp_c1*t4+sp_c2*t2+sp_c3*t1;
-                } else {
-                    r1=sp_c1*t1+sp_c2*t3+sp_c3*t4;
-                    r2=sp_c1*t2+sp_c2*t4-sp_c3*t3;
-                    r3=sp_c1*t3-sp_c2*t1+sp_c3*t2;
-                    r4=sp_c1*t4-sp_c2*t2-sp_c3*t1;
-                }
-                zsig[4*np  ]=r1;
-                zsig[4*np+1]=r2;
-                zsig[4*np+2]=r3;
-                zsig[4*np+3]=r4;
-                sp_sig[2*izz  ]=r1;
-                sp_sig[2*izz+1]=r2;
+            if((spur_location[spurno]&1)==1) {
+                r1=-sp_c1*t1-sp_c2*t3-sp_c3*t4;
+                r2=-sp_c1*t2-sp_c2*t4+sp_c3*t3;
+                r3=-sp_c1*t3+sp_c2*t1-sp_c3*t2;
+                r4=-sp_c1*t4+sp_c2*t2+sp_c3*t1;
+            } else {
+                r1=sp_c1*t1+sp_c2*t3+sp_c3*t4;
+                r2=sp_c1*t2+sp_c2*t4-sp_c3*t3;
+                r3=sp_c1*t3-sp_c2*t1+sp_c3*t2;
+                r4=sp_c1*t4-sp_c2*t2-sp_c3*t1;
+            }
+            zsig[4*np  ]=r1;
+            zsig[4*np+1]=r2;
+            zsig[4*np+2]=r3;
+            zsig[4*np+3]=r4;
+            sp_sig[2*izz  ]=r1;
+            sp_sig[2*izz+1]=r2;
 //if(mailbox[1]==1)fprintf( dmp,"\nB sp_sig  %f %f   %f %f",r1,r2,r3,r4);
-                izz++;
-                np=(np+1)&fftxn_mask;
-            }
+            izz++;
+            np=(np+1)&fftxn_mask;
         }
     }
 
@@ -1244,7 +1047,6 @@ int verify_spur_pll(void)
     float freq, d2err, d1err, d0err;
     float phase_slope,phase_curv;
     float *zsig, *z;
-    short int *zmmx;
     int *uind;
 // Use the phases to transform the spur signal.
 // Ideally the signal should then be entirely in I.
@@ -1318,36 +1120,20 @@ restart:
         if(sw_onechan) {
             r1=0;
             r2=0;
-            if(swmmx_fft2) {
-                for(i=0; i<SPUR_WIDTH; i++) {
-                    r1+=spur_spectra[ind+i]*spur_table_mmx[2*i+knd  ];
-                    r2+=spur_spectra[ind+i]*spur_table_mmx[2*i+knd+1];
-                }
-            } else {
-                for(i=0; i<SPUR_WIDTH; i++) {
-                    r1+=spur_spectra[ind+i]*spur_table[2*i+knd  ];
-                    r2+=spur_spectra[ind+i]*spur_table[2*i+knd+1];
-                }
+            for(i=0; i<SPUR_WIDTH; i++) {
+                r1+=spur_spectra[ind+i]*spur_table[2*i+knd  ];
+                r2+=spur_spectra[ind+i]*spur_table[2*i+knd+1];
             }
         } else {
             t1=0;
             t2=0;
             t3=0;
             t4=0;
-            if(swmmx_fft2) {
-                for(i=0; i<SPUR_WIDTH; i++) {
-                    t1+=spur_spectra[ind+i]*spur_table_mmx[4*i+knd  ];
-                    t2+=spur_spectra[ind+i]*spur_table_mmx[4*i+knd+1];
-                    t3+=spur_spectra[ind+i]*spur_table_mmx[4*i+knd+2];
-                    t4+=spur_spectra[ind+i]*spur_table_mmx[4*i+knd+3];
-                }
-            } else {
-                for(i=0; i<SPUR_WIDTH; i++) {
-                    t1+=spur_spectra[ind+i]*spur_table[4*i+knd  ];
-                    t2+=spur_spectra[ind+i]*spur_table[4*i+knd+1];
-                    t3+=spur_spectra[ind+i]*spur_table[4*i+knd+2];
-                    t4+=spur_spectra[ind+i]*spur_table[4*i+knd+3];
-                }
+            for(i=0; i<SPUR_WIDTH; i++) {
+                t1+=spur_spectra[ind+i]*spur_table[4*i+knd  ];
+                t2+=spur_spectra[ind+i]*spur_table[4*i+knd+1];
+                t3+=spur_spectra[ind+i]*spur_table[4*i+knd+2];
+                t4+=spur_spectra[ind+i]*spur_table[4*i+knd+3];
             }
             r1=sp_c1*t1+sp_c2*t3+sp_c3*t4;
             r2=sp_c1*t2+sp_c2*t4-sp_c3*t3;
@@ -1465,38 +1251,25 @@ restart:
                     t1=a1;
                     t2=a2;
                 }
-                if(swmmx_fft2) {
-                    zmmx=&fft2_short_int[twice_rxchan*(ni*fft2_size+pnt)];
-                    for(i=0; i<SPUR_WIDTH; i++) {
-                        sigspek[i+1]+=spur_spectra[ind+i]*spur_spectra[ind+i]*(t1*t1+t2*t2);
-                        errspek[i+1]+=pow(zmmx[2*i  ]-spur_spectra[ind+i]*t1,2.0)+
-                                      pow(zmmx[2*i+1]-spur_spectra[ind+i]*t2,2.0);
-                    }
-                    errspek[0]+=pow((float)(zmmx[-2]),2.0)+
-                                pow((float)(zmmx[-1]),2.0);
-                    errspek[SPUR_WIDTH+1]+=pow((float)(zmmx[2*(SPUR_WIDTH+1)  ]),2.0)+
-                                           pow((float)(zmmx[2*(SPUR_WIDTH+1)+1]),2.0);
-                } else {
-                    z=&fftx[twice_rxchan*(ni*fftx_size+pnt)];
-                    for(i=0; i<SPUR_WIDTH; i++) {
-                        sigspek[i+1]+=spur_spectra[ind+i]*spur_spectra[ind+i]*(t1*t1+t2*t2);
-                        /*
-                        if(mailbox[1]==1)fprintf( dmp,"\nSUB %d %d:  (%f,%.3f)   (%f,%.3f)    (%f,%.3f)",ni,i,
-                               ZX*sqrt(pow(z[2*i  ],2.0)+pow(z[2*i+1],2.0)),atan2(z[2*i+1],z[2*i])/PI_L,
-                               ZX*sqrt(pow(spur_spectra[ind+i]*t1,2.0)+pow(spur_spectra[ind+i]*t2,2.0)),
-                                        atan2(spur_spectra[ind+i]*t2,spur_spectra[ind+i]*t1)/PI_L,
-                               ZX*sqrt(pow(z[2*i  ]-spur_spectra[ind+i]*t1,2.0)+
-                                              pow(z[2*i+1]-spur_spectra[ind+i]*t2,2.0)),
-                               atan2(z[2*i+1]-spur_spectra[ind+i]*t2,z[2*i  ]-spur_spectra[ind+i]*t1)/PI_L);
-                        */
-                        errspek[i+1]+=pow(z[2*i  ]-spur_spectra[ind+i]*t1,2.0)+
-                                      pow(z[2*i+1]-spur_spectra[ind+i]*t2,2.0);
-                    }
-
-                    errspek[0]+=pow(z[-2],2.0)+pow(z[-1],2.0);
-                    errspek[SPUR_WIDTH+1]+=pow(z[2*(SPUR_WIDTH+1)  ],2.0)+
-                                           pow(z[2*(SPUR_WIDTH+1)+1],2.0);
+                z=&fftx[twice_rxchan*(ni*fftx_size+pnt)];
+                for(i=0; i<SPUR_WIDTH; i++) {
+                    sigspek[i+1]+=spur_spectra[ind+i]*spur_spectra[ind+i]*(t1*t1+t2*t2);
+                    /*
+                    if(mailbox[1]==1)fprintf( dmp,"\nSUB %d %d:  (%f,%.3f)   (%f,%.3f)    (%f,%.3f)",ni,i,
+                           ZX*sqrt(pow(z[2*i  ],2.0)+pow(z[2*i+1],2.0)),atan2(z[2*i+1],z[2*i])/PI_L,
+                           ZX*sqrt(pow(spur_spectra[ind+i]*t1,2.0)+pow(spur_spectra[ind+i]*t2,2.0)),
+                                    atan2(spur_spectra[ind+i]*t2,spur_spectra[ind+i]*t1)/PI_L,
+                           ZX*sqrt(pow(z[2*i  ]-spur_spectra[ind+i]*t1,2.0)+
+                                          pow(z[2*i+1]-spur_spectra[ind+i]*t2,2.0)),
+                           atan2(z[2*i+1]-spur_spectra[ind+i]*t2,z[2*i  ]-spur_spectra[ind+i]*t1)/PI_L);
+                    */
+                    errspek[i+1]+=pow(z[2*i  ]-spur_spectra[ind+i]*t1,2.0)+
+                                  pow(z[2*i+1]-spur_spectra[ind+i]*t2,2.0);
                 }
+
+                errspek[0]+=pow(z[-2],2.0)+pow(z[-1],2.0);
+                errspek[SPUR_WIDTH+1]+=pow(z[2*(SPUR_WIDTH+1)  ],2.0)+
+                                       pow(z[2*(SPUR_WIDTH+1)+1],2.0);
             } else {
                 if((j^(spur_location[spurno]&1))==1) {
                     t1=-sp_c1*a1;
@@ -1509,52 +1282,30 @@ restart:
                     t3=sp_c2*a1-sp_c3*a2;
                     t4=sp_c2*a2+sp_c3*a1;
                 }
-                if(swmmx_fft2) {
-                    zmmx=&fft2_short_int[twice_rxchan*(ni*fft2_size+pnt)];
-                    for(i=0; i<SPUR_WIDTH; i++) {
-                        sigspek[i+1]+=spur_spectra[ind+i]*spur_spectra[ind+i]*
-                                      (t1*t1+t2*t2+t3*t3+t4*t4);
+                z=&fftx[twice_rxchan*(ni*fftx_size+pnt)];
+                for(i=0; i<SPUR_WIDTH; i++) {
+                    sigspek[i+1]+=spur_spectra[ind+i]*spur_spectra[ind+i]*
+                                  (t1*t1+t2*t2+t3*t3+t4*t4);
+                    /*
+                    if(mailbox[1]==1)fprintf( dmp,"\nSUB %d %d:[(%f,%.3f)(%f,%.3f)]   %f  {%f,%f,%f,%f)",ni,i,
+                           ZX*z[4*i  ],ZX*z[4*i+1], ZX*z[4*i+2],ZX*z[4*i+3],
 
-
-                        errspek[i+1]+=pow(zmmx[4*i  ]-spur_spectra[ind+i]*t1,2.0)+
-                                      pow(zmmx[4*i+1]-spur_spectra[ind+i]*t2,2.0)+
-                                      pow(zmmx[4*i+2]-spur_spectra[ind+i]*t3,2.0)+
-                                      pow(zmmx[4*i+3]-spur_spectra[ind+i]*t4,2.0);
-                    }
-                    errspek[0]+=pow((float)(zmmx[-4]),2.0)+
-                                pow((float)(zmmx[-3]),2.0)+
-                                pow((float)(zmmx[-2]),2.0)+
-                                pow((float)(zmmx[-1]),2.0);
-                    errspek[SPUR_WIDTH+1]+=pow((float)(zmmx[4*(SPUR_WIDTH+1)  ]),2.0)+
-                                           pow((float)(zmmx[4*(SPUR_WIDTH+1)+1]),2.0)+
-                                           pow((float)(zmmx[4*(SPUR_WIDTH+1)+2]),2.0)+
-                                           pow((float)(zmmx[4*(SPUR_WIDTH+1)+3]),2.0);
-                } else {
-                    z=&fftx[twice_rxchan*(ni*fftx_size+pnt)];
-                    for(i=0; i<SPUR_WIDTH; i++) {
-                        sigspek[i+1]+=spur_spectra[ind+i]*spur_spectra[ind+i]*
-                                      (t1*t1+t2*t2+t3*t3+t4*t4);
-                        /*
-                        if(mailbox[1]==1)fprintf( dmp,"\nSUB %d %d:[(%f,%.3f)(%f,%.3f)]   %f  {%f,%f,%f,%f)",ni,i,
-                               ZX*z[4*i  ],ZX*z[4*i+1], ZX*z[4*i+2],ZX*z[4*i+3],
-
-                               ZX*spur_spectra[ind+i],
-                               ZX*spur_spectra[ind+i]*t1,
-                               ZX*spur_spectra[ind+i]*t2,
-                               ZX*spur_spectra[ind+i]*t3,
-                               ZX*spur_spectra[ind+i]*t4);
-                        */
-                        errspek[i+1]+=pow(z[4*i  ]-spur_spectra[ind+i]*t1,2.0)+
-                                      pow(z[4*i+1]-spur_spectra[ind+i]*t2,2.0)+
-                                      pow(z[4*i+2]-spur_spectra[ind+i]*t3,2.0)+
-                                      pow(z[4*i+3]-spur_spectra[ind+i]*t4,2.0);
-                    }
-                    errspek[0]+=pow(z[-4],2.0)+pow(z[-3],2.0)+pow(z[-2],2.0)+pow(z[-1],2.0);
-                    errspek[SPUR_WIDTH+1]+=pow(z[4*(SPUR_WIDTH+1)  ],2.0)+
-                                           pow(z[4*(SPUR_WIDTH+1)+1],2.0)+
-                                           pow(z[4*(SPUR_WIDTH+1)+2],2.0)+
-                                           pow(z[4*(SPUR_WIDTH+1)+3],2.0);
+                           ZX*spur_spectra[ind+i],
+                           ZX*spur_spectra[ind+i]*t1,
+                           ZX*spur_spectra[ind+i]*t2,
+                           ZX*spur_spectra[ind+i]*t3,
+                           ZX*spur_spectra[ind+i]*t4);
+                    */
+                    errspek[i+1]+=pow(z[4*i  ]-spur_spectra[ind+i]*t1,2.0)+
+                                  pow(z[4*i+1]-spur_spectra[ind+i]*t2,2.0)+
+                                  pow(z[4*i+2]-spur_spectra[ind+i]*t3,2.0)+
+                                  pow(z[4*i+3]-spur_spectra[ind+i]*t4,2.0);
                 }
+                errspek[0]+=pow(z[-4],2.0)+pow(z[-3],2.0)+pow(z[-2],2.0)+pow(z[-1],2.0);
+                errspek[SPUR_WIDTH+1]+=pow(z[4*(SPUR_WIDTH+1)  ],2.0)+
+                                       pow(z[4*(SPUR_WIDTH+1)+1],2.0)+
+                                       pow(z[4*(SPUR_WIDTH+1)+2],2.0)+
+                                       pow(z[4*(SPUR_WIDTH+1)+3],2.0);
             }
             ni=(ni+fftxn_mask)&fftxn_mask;
             izz--;

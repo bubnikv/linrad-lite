@@ -1193,7 +1193,6 @@ void set_rx_io(void)
     int latency, dword_bytes;
     char *ss;
     char s[256];
-    char s1[256];
     int i, j, k, bits, dev, line;
     int n1, n2, m1, m2;
     unsigned int device_id, no_of_addev, no_of_dadev;
@@ -2452,8 +2451,6 @@ void set_tx_io(void)
             ((ui.rx_max_da_channels == 0 || ui.rx_dadev_no == UNDEFINED_DEVICE_CODE)
              && ui.rx_dadev_no != DISABLED_DEVICE_CODE)) {
         lir_text(0,0,"The RX input and output must be set up before the TX.");
-not_now:
-        ;
         lir_text(0,1,"TX is now disabled.");
         ui.tx_addev_no=UNDEFINED_DEVICE_CODE;
         ui.tx_dadev_no=UNDEFINED_DEVICE_CODE;

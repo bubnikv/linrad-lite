@@ -29,7 +29,6 @@ float *fft2_float;
 unsigned short int *fft2_permute;
 float *fft2_window;
 COSIN_TABLE *fft2_tab;
-short int *fft2_short_int;
 unsigned int *fft2_bigpermute;
 MMX_COSIN_TABLE *fft2_mmxcosin;
 short int *fft2_mmxwin;

@@ -2766,56 +2766,19 @@ void fft1_b(int timf1p_ref, float *out, float *tmp)
     int i,j;
     int chan, k, m, n, nn, ia, ib, ic;
     float t1,t2,t3,t4;
-//float *z;
     int pc;
     int multiplicity;
     multiplicity=1;
     if(ui.rx_rf_channels==1) {
         switch (FFT1_CURMODE) {
-        case 0:
-            multiplicity=2;
-//  Twin Radix 4 DIT SIMD complex
-#if CPU == CPU_INTEL
-            fft1win_dit_one_dual(timf1p_ref, tmp);
-            /*
-                if(  (ui.rx_input_mode&DWORD_INPUT) == 0)
-                  {
-                  if(genparm[FIRST_FFT_SINPOW] == 0)
-                    {
-                    simd1_16_nowin_dual();
-                    }
-                  else
-                    {
-                    simd1_16_win_dual();
-                    }
-                  }
-                else
-                  {
-                  if(genparm[FIRST_FFT_SINPOW] == 0)
-                    {
-                    simd1_32_nowin_dual();
-                    }
-                  else
-                    {
-                    simd1_32_win_dual();
-                    }
-                  }
-            */
-            simdbulk_of_dual_dit(fft1_size, fft1_n, tmp, fft1tab);
-            for(i=0; i<fft1_size; i++) {
-                out[2*i  ]=tmp[4*i ];
-                out[2*i+1]=tmp[4*i+1];
-                out[2*fft1_size+2*i  ]=tmp[4*i+2];
-                out[2*fft1_size+2*i+1]=tmp[4*i+3];
-            }
-#else
-            lirerr(998546);
-#endif
+        case 0: // Twin Radix 4 DIT SIMD complex
+        case 4: // Quad Radix 4 DIT SIMD real
+        case 8: // Radix 2 DIF ASM complex
+            lirerr(988546);
             break;
 
-        case 1:
+        case 1: // Twin Radix 4 DIT C real
             multiplicity=2;
-// Twin Radix 4 DIT C real
             fft1win_dit_one_real(timf1p_ref, tmp);
             bulk_of_dit(2*fft1_size, fft1_n+1, tmp, fft1tab, yieldflag_wdsp_fft1);
             for(i=1; i<fft1_size; i++) {
@@ -2831,14 +2794,12 @@ void fft1_b(int timf1p_ref, float *out, float *tmp)
             out[fft1_block+1]=tmp[1];
             break;
 
-        case 2:
-// Split radix DIT C real
+        case 2: // Split radix DIT C real
             fft1_reherm_dit_one(timf1p_ref, out, tmp);
-            goto fft_done;
+            return;
 
-        case 3:
+        case 3: // Quad Radix 4 DIT C real
             multiplicity=4;
-// Quad Radix 4 DIT C real
             fft1win_dit_one_dual_real(timf1p_ref,tmp);
             bulk_of_dual_dit(2*fft1_size, fft1_n+1, tmp, fft1tab, yieldflag_wdsp_fft1);
             for(i=1; i<fft1_size; i++) {
@@ -2862,72 +2823,8 @@ void fft1_b(int timf1p_ref, float *out, float *tmp)
             out[3*fft1_block+1]=tmp[3];
             break;
 
-        case 4:
-            multiplicity=4;
-// Quad Radix 4 DIT SIMD real
-#if CPU == CPU_INTEL
-// Do real to complex for a single channel by computing four
-// transforms in parallel.
-            if(  (ui.rx_input_mode&DWORD_INPUT) == 0) {
-                if(genparm[FIRST_FFT_SINPOW] == 0) {
-// The SIMD assembly routine is just a little faster than the C routine
-// so we use it - but only on 32 bit systems.
-#if IA64 == 0
-                    simd1_16_nowin_real(timf1p_ref, tmp);
-#else
-                    fft1win_dit_one_dual_real(timf1p_ref, tmp);
-#endif
-                } else {
-// The difference between SIMD assembly and plain C is very small here!!!
-// it seems SIMD is just a little faster than C.
-#if IA64 == 0
-                    simd1_16_win_real(timf1p_ref, tmp);
-#else
-                    fft1win_dit_one_dual_real(timf1p_ref, tmp);
-#endif
-                }
-            } else {
-                if(genparm[FIRST_FFT_SINPOW] == 0) {
-// Assembly not properly implemented. High speed 32 bit hardware will most
-// probably not be available in a very long time.
-                    fft1win_dit_one_dual_real(timf1p_ref, tmp);
-//        simd1_32_nowin_real();
-                } else {
-// Assembly not properly implemented. High speed 32 bit hardware will most
-// probably not be available in a very long time.
-                    fft1win_dit_one_dual_real(timf1p_ref, tmp);
-//        simd1_32_win_real();
-                }
-            }
-            simdbulk_of_dual_dit(2*fft1_size, fft1_n+1, tmp, fft1tab);
-#else
-            lirerr(988546);
-#endif
-            j=2*fft1_size-1;
-            for(i=1; i<fft1_size; i++) {
-                out[2*fft1_size-2*i  ]=              (tmp[4*i  ]+tmp[4*j  ]);
-                out[2*fft1_size-2*i+1]=             -(tmp[4*i+1]-tmp[4*j+1]);
-                out[2*fft1_size+fft1_block-2*i  ]=  -(tmp[4*i+1]+tmp[4*j+1]);
-                out[2*fft1_size+fft1_block-2*i+1]=  -(tmp[4*i  ]-tmp[4*j  ]);
-                out[2*fft1_size+2*fft1_block-2*i  ]= (tmp[4*i+2]+tmp[4*j+2]);
-                out[2*fft1_size+2*fft1_block-2*i+1]=-(tmp[4*i+3]-tmp[4*j+3]);
-                out[2*fft1_size+3*fft1_block-2*i  ]=-(tmp[4*i+3]+tmp[4*j+3]);
-                out[2*fft1_size+3*fft1_block-2*i+1]=-(tmp[4*i+2]-tmp[4*j+2]);
-                j--;
-            }
-            out[0]=tmp[8*fft1_size-4];
-            out[1]=tmp[0];
-            out[fft1_block  ]=-tmp[8*fft1_size-3];
-            out[fft1_block+1]=tmp[1];
-            out[2*fft1_block  ]=tmp[8*fft1_size-2];
-            out[2*fft1_block+1]=tmp[2];
-            out[3*fft1_block  ]=-tmp[8*fft1_size-1];
-            out[3*fft1_block+1]=tmp[3];
-            break;
-
-        case 5:
+        case 5: //  Twin Radix 4 DIT complex
             multiplicity=2;
-//  Twin Radix 4 DIT complex
             fft1win_dit_one_dual(timf1p_ref, tmp);
             bulk_of_dual_dit(fft1_size, fft1_n, tmp, fft1tab, yieldflag_wdsp_fft1);
             for(i=0; i<fft1_size; i++) {
@@ -2938,27 +2835,14 @@ void fft1_b(int timf1p_ref, float *out, float *tmp)
             }
             break;
 
-        case 6:
-// Radix 4 DIT C complex
+        case 6: // Radix 4 DIT C complex
             fft1win_dit_one(timf1p_ref, out);
             bulk_of_dit(fft1_size, fft1_n, out, fft1tab, yieldflag_wdsp_fft1);
             break;
 
-        case 7:
-// Radix 2 DIF C complex
+        case 7: // Radix 2 DIF C complex
             fft1win_dif_one(timf1p_ref, tmp);
             bulk_of_dif(fft1_size, fft1_n, tmp, fft1tab, yieldflag_wdsp_fft1);
-            dif_permute_one(out, tmp);
-            break;
-
-        case 8:
-// Radix 2 DIF ASM complex
-            fft1win_dif_one(timf1p_ref, tmp);
-#if IA64 == 0 && CPU == CPU_INTEL
-            asmbulk_of_dif(fft1_size, fft1_n, tmp, fft1tab, yieldflag_wdsp_fft1);
-#else
-            bulk_of_dif(fft1_size, fft1_n, tmp, fft1tab, yieldflag_wdsp_fft1);
-#endif
             dif_permute_one(out, tmp);
             break;
 
@@ -3049,8 +2933,14 @@ void fft1_b(int timf1p_ref, float *out, float *tmp)
         }
     } else {
         switch (FFT1_CURMODE) {
-        case 1:
-// Twin Radix 4 DIT C real
+        case 4:  // Quad Radix 4 DIT SIMD real
+        case 8:  // Radix 2 DIF ASM complex
+        case 9:  // Twin radix 2 DIF ASM complex
+        case 11: // Twin Radix 4 DIT SIMD complex
+            lirerr(238553);
+            break;
+
+        case 1: // Twin Radix 4 DIT C real
             for(chan=0; chan<2; chan++) {
                 fft1win_dit_one_real_chan(timf1p_ref, tmp, chan);
                 bulk_of_dit(2*fft1_size, fft1_n+1, tmp, fft1tab, yieldflag_wdsp_fft1);
@@ -3069,13 +2959,11 @@ void fft1_b(int timf1p_ref, float *out, float *tmp)
             }
             break;
 
-        case 2:
-// Split radix DIT C real
+        case 2: // Split radix DIT C real
             fft1_reherm_dit_two(timf1p_ref, out, tmp);
-            goto fft_done;
+            return;
 
-        case 3:
-// Quad Radix 4 DIT C real
+        case 3: // Quad Radix 4 DIT C real
             for(chan=0; chan<2; chan++) {
                 fft1win_dit_one_dual_real_chan(timf1p_ref, tmp, chan);
                 bulk_of_dual_dit(2*fft1_size, fft1_n+1, tmp, fft1tab, yieldflag_wdsp_fft1);
@@ -3102,118 +2990,26 @@ void fft1_b(int timf1p_ref, float *out, float *tmp)
             }
             break;
 
-        case 4:
-#if(CPU == CPU_INTEL && IA64 == 0)
-            for(chan=0; chan<2; chan++) {
-                fft1win_dit_one_dual_real_chan(timf1p_ref, tmp, chan);
-                simdbulk_of_dual_dit(2*fft1_size, fft1_n+1, tmp, fft1tab);
-                for(i=1; i<fft1_size; i++) {
-                    j=2*fft1_size-i;
-                    k=4*(fft1_size-i)+2*chan;
-                    out[k  ]=              (tmp[4*i  ]+tmp[4*j  ]);
-                    out[k+1]=             -(tmp[4*i+1]-tmp[4*j+1]);
-                    out[k+fft1_block  ]=  -(tmp[4*i+1]+tmp[4*j+1]);
-                    out[k+fft1_block+1]=  -(tmp[4*i  ]-tmp[4*j  ]);
-                    out[k+2*fft1_block  ]= (tmp[4*i+2]+tmp[4*j+2]);
-                    out[k+2*fft1_block+1]=-(tmp[4*i+3]-tmp[4*j+3]);
-                    out[k+3*fft1_block  ]=-(tmp[4*i+3]+tmp[4*j+3]);
-                    out[k+3*fft1_block+1]=-(tmp[4*i+2]-tmp[4*j+2]);
-                }
-                out[2*chan]=tmp[8*fft1_size-4];
-                out[2*chan+1]=tmp[0];
-                out[fft1_block+2*chan]=-tmp[8*fft1_size-3];
-                out[fft1_block+2*chan+1]=tmp[1];
-                out[2*fft1_block+2*chan  ]=tmp[8*fft1_size-2];
-                out[2*fft1_block+2*chan+1]=tmp[2];
-                out[3*fft1_block+2*chan  ]=-tmp[8*fft1_size-1];
-                out[3*fft1_block+2*chan+1]=tmp[3];
-            }
-#else
-            lirerr(238553);
-#endif
-            break;
-
-        case 6:
-// Radix 4 DIT C complex
+        case 6: // Radix 4 DIT C complex
             for(chan=0; chan<2; chan++) {
                 fft1win_dit_chan(chan,timf1p_ref, tmp);
                 bulk_of_dit(fft1_size, fft1_n, tmp, fft1tab, yieldflag_wdsp_fft1);
-                dit_finish_chan (chan, out, tmp);
+                dit_finish_chan(chan, out, tmp);
             }
             break;
 
-        case 7:
-// Radix 2 DIF C complex
+        case 7: // Radix 2 DIF C complex
             for(chan=0; chan<2; chan++) {
                 fft1win_dif_chan(chan,timf1p_ref, tmp);
                 bulk_of_dif(fft1_size, fft1_n, tmp, fft1tab, yieldflag_wdsp_fft1);
-                dif_permute_chan (chan, out, tmp);
+                dif_permute_chan(chan, out, tmp);
             }
             break;
 
-        case 8:
-// Radix 2 DIF ASM complex
-#if IA64 == 0 && CPU == CPU_INTEL
-            for(chan=0; chan<2; chan++) {
-                fft1win_dif_chan(chan, timf1p_ref, tmp);
-                asmbulk_of_dif(fft1_size, fft1_n, tmp, fft1tab, yieldflag_wdsp_fft1);
-                dif_permute_chan (chan, out, tmp);
-            }
-#else
-            for(chan=0; chan<2; chan++) {
-                fft1win_dif_chan(chan,timf1p_ref, tmp);
-                bulk_of_dif(fft1_size, fft1_n, tmp, fft1tab, yieldflag_wdsp_fft1);
-                dif_permute_chan (chan, out, tmp);
-            }
-#endif
-            break;
-
-        case 9:
+        case 10: // Twin Radix 4 DIT C complex
             multiplicity=2;
-// Twin radix 2 DIF ASM complex
-            fft1win_dif_two(timf1p_ref, tmp);
-#if IA64 == 0 && CPU == CPU_INTEL
-            asmbulk_of_dual_dif(fft1_size, fft1_n,
-                                tmp, fft1tab, yieldflag_wdsp_fft1);
-#else
-            bulk_of_dual_dif(fft1_size, fft1_n,
-                             tmp, fft1tab, yieldflag_wdsp_fft1);
-#endif
-            dif_permute_two(out, tmp);
-            break;
-
-        case 10:
-            multiplicity=2;
-// Twin Radix 4 DIT C complex
             fft1win_dit_two(timf1p_ref, out);
             bulk_of_dual_dit(fft1_size, fft1_n, out, fft1tab, yieldflag_wdsp_fft1);
-            break;
-
-        case 11:
-            multiplicity=2;
-// Twin Radix 4 DIT SIMD complex
-#if CPU == CPU_INTEL
-#if IA64 == 0
-            if(  (ui.rx_input_mode&DWORD_INPUT) == 0) {
-                if(genparm[FIRST_FFT_SINPOW] == 0) {
-                    simd1_16_nowin(timf1p_ref,out);
-                } else {
-                    simd1_16_win(timf1p_ref,out);
-                }
-            } else {
-                if(genparm[FIRST_FFT_SINPOW] == 0) {
-                    simd1_32_nowin(timf1p_ref,out);
-                } else {
-                    simd1_32_win(timf1p_ref,out);
-                }
-            }
-#else
-            fft1win_dit_two(timf1p_ref, out);
-#endif
-            simdbulk_of_dual_dit(fft1_size, fft1_n, out, fft1tab);
-#else
-            lirerr(998546);
-#endif
             break;
 
         default:
@@ -3360,8 +3156,6 @@ void fft1_b(int timf1p_ref, float *out, float *tmp)
             }
         }
     }
-fft_done:
-    ;
 }
 
 void fft1_c(void)

@@ -24,91 +24,90 @@
 #include "uidef.h"
 #include "fft1def.h"
 
+void fft1back_one(void);
+void fft1back_two(void);
+
 void make_timf2(void)
 {
     float *x;
     int i,k1,k2,k3,k4;
-    if(swfloat) {
-        fft1_lowlevel_points=0;
-        x=&fft1_float[fft1_px];
-        if(ui.rx_rf_channels==1) {
-            for(i=0; i<fft1_first_point; i++) {
-                fft1_split_float[4*i  ]=0;
-                fft1_split_float[4*i+1]=0;
-                fft1_split_float[4*i+2]=0;
-                fft1_split_float[4*i+3]=0;
-            }
-            for(i=fft1_first_point; i<=fft1_last_point; i++) {
-                if(liminfo[i] == 0) {
-                    fft1_lowlevel_points++;
-                    fft1_split_float[4*i  ]=x[2*i  ];
-                    fft1_split_float[4*i+1]=x[2*i+1];
-                    fft1_split_float[4*i+2]=0;
-                    fft1_split_float[4*i+3]=0;
-                } else {
-                    fft1_split_float[4*i  ]=0;
-                    fft1_split_float[4*i+1]=0;
-                    fft1_split_float[4*i+2]=x[2*i  ];
-                    fft1_split_float[4*i+3]=x[2*i+1];
-                }
-            }
-            for(i=fft1_last_point+1; i<fft1_size; i++) {
-                fft1_split_float[4*i  ]=0;
-                fft1_split_float[4*i+1]=0;
-                fft1_split_float[4*i+2]=0;
-                fft1_split_float[4*i+3]=0;
-            }
-            fft1back_one();
-        } else {
-            for(i=0; i<fft1_first_point; i++) {
-                fft1_split_float[8*i  ]=0;
-                fft1_split_float[8*i+1]=0;
-                fft1_split_float[8*i+2]=0;
-                fft1_split_float[8*i+3]=0;
-                fft1_split_float[8*i+4]=0;
-                fft1_split_float[8*i+5]=0;
-                fft1_split_float[8*i+6]=0;
-                fft1_split_float[8*i+7]=0;
-            }
-            for(i=fft1_first_point; i<=fft1_last_point; i++) {
-                if(liminfo[i] == 0) {
-                    fft1_lowlevel_points++;
-                    fft1_split_float[8*i  ]=x[4*i  ];
-                    fft1_split_float[8*i+1]=x[4*i+1];
-                    fft1_split_float[8*i+2]=x[4*i+2];
-                    fft1_split_float[8*i+3]=x[4*i+3];
-                    fft1_split_float[8*i+4]=0;
-                    fft1_split_float[8*i+5]=0;
-                    fft1_split_float[8*i+6]=0;
-                    fft1_split_float[8*i+7]=0;
-                } else {
-                    fft1_split_float[8*i  ]=0;
-                    fft1_split_float[8*i+1]=0;
-                    fft1_split_float[8*i+2]=0;
-                    fft1_split_float[8*i+3]=0;
-                    fft1_split_float[8*i+4]=x[4*i  ];
-                    fft1_split_float[8*i+5]=x[4*i+1];
-                    fft1_split_float[8*i+6]=x[4*i+2];
-                    fft1_split_float[8*i+7]=x[4*i+3];
-                }
-            }
-            for(i=fft1_last_point+1; i<fft1_size; i++) {
-                fft1_split_float[8*i  ]=0;
-                fft1_split_float[8*i+1]=0;
-                fft1_split_float[8*i+2]=0;
-                fft1_split_float[8*i+3]=0;
-                fft1_split_float[8*i+4]=0;
-                fft1_split_float[8*i+5]=0;
-                fft1_split_float[8*i+6]=0;
-                fft1_split_float[8*i+7]=0;
-            }
-            fft1back_two();
+    fft1_lowlevel_points=0;
+    x=&fft1_float[fft1_px];
+    if(ui.rx_rf_channels==1) {
+        for(i=0; i<fft1_first_point; i++) {
+            fft1_split_float[4*i  ]=0;
+            fft1_split_float[4*i+1]=0;
+            fft1_split_float[4*i+2]=0;
+            fft1_split_float[4*i+3]=0;
         }
-        fft1_px=(fft1_px+fft1_block)&fft1_mask;
-        fft1_nx=(fft1_nx+1)&fft1n_mask;
+        for(i=fft1_first_point; i<=fft1_last_point; i++) {
+            if(liminfo[i] == 0) {
+                fft1_lowlevel_points++;
+                fft1_split_float[4*i  ]=x[2*i  ];
+                fft1_split_float[4*i+1]=x[2*i+1];
+                fft1_split_float[4*i+2]=0;
+                fft1_split_float[4*i+3]=0;
+            } else {
+                fft1_split_float[4*i  ]=0;
+                fft1_split_float[4*i+1]=0;
+                fft1_split_float[4*i+2]=x[2*i  ];
+                fft1_split_float[4*i+3]=x[2*i+1];
+            }
+        }
+        for(i=fft1_last_point+1; i<fft1_size; i++) {
+            fft1_split_float[4*i  ]=0;
+            fft1_split_float[4*i+1]=0;
+            fft1_split_float[4*i+2]=0;
+            fft1_split_float[4*i+3]=0;
+        }
+        fft1back_one();
     } else {
-        lirerr(999999);
+        for(i=0; i<fft1_first_point; i++) {
+            fft1_split_float[8*i  ]=0;
+            fft1_split_float[8*i+1]=0;
+            fft1_split_float[8*i+2]=0;
+            fft1_split_float[8*i+3]=0;
+            fft1_split_float[8*i+4]=0;
+            fft1_split_float[8*i+5]=0;
+            fft1_split_float[8*i+6]=0;
+            fft1_split_float[8*i+7]=0;
+        }
+        for(i=fft1_first_point; i<=fft1_last_point; i++) {
+            if(liminfo[i] == 0) {
+                fft1_lowlevel_points++;
+                fft1_split_float[8*i  ]=x[4*i  ];
+                fft1_split_float[8*i+1]=x[4*i+1];
+                fft1_split_float[8*i+2]=x[4*i+2];
+                fft1_split_float[8*i+3]=x[4*i+3];
+                fft1_split_float[8*i+4]=0;
+                fft1_split_float[8*i+5]=0;
+                fft1_split_float[8*i+6]=0;
+                fft1_split_float[8*i+7]=0;
+            } else {
+                fft1_split_float[8*i  ]=0;
+                fft1_split_float[8*i+1]=0;
+                fft1_split_float[8*i+2]=0;
+                fft1_split_float[8*i+3]=0;
+                fft1_split_float[8*i+4]=x[4*i  ];
+                fft1_split_float[8*i+5]=x[4*i+1];
+                fft1_split_float[8*i+6]=x[4*i+2];
+                fft1_split_float[8*i+7]=x[4*i+3];
+            }
+        }
+        for(i=fft1_last_point+1; i<fft1_size; i++) {
+            fft1_split_float[8*i  ]=0;
+            fft1_split_float[8*i+1]=0;
+            fft1_split_float[8*i+2]=0;
+            fft1_split_float[8*i+3]=0;
+            fft1_split_float[8*i+4]=0;
+            fft1_split_float[8*i+5]=0;
+            fft1_split_float[8*i+6]=0;
+            fft1_split_float[8*i+7]=0;
+        }
+        fft1back_two();
     }
+    fft1_px=(fft1_px+fft1_block)&fft1_mask;
+    fft1_nx=(fft1_nx+1)&fft1n_mask;
     fft1_lowlevel_fraction=0.02*(49*fft1_lowlevel_fraction+fft1_lowlevel_points/
                                  ((float)(fft1_last_point-fft1_first_point)));
     timf2_pa=(timf2_pa+timf2_input_block)&timf2_mask;
@@ -128,220 +127,111 @@ void fft1back_two(void)
     float s1,s2,c1,c2;
     siz=fft1_size;
     siz_d4=fft1_size/4;
-    if(swfloat) {
-        for(j=0; j<siz; j+=4) {
-            ia=fft1_back_scramble[j  ]<<3;
-            ib=fft1_back_scramble[j+1]<<3;
-            ic=fft1_back_scramble[j+2]<<3;
-            id=fft1_back_scramble[j+3]<<3;
-            k=j<<3;
-            t1=fft1_split_float[ia  ]+fft1_split_float[ib  ];
-            t2=fft1_split_float[ia+1]+fft1_split_float[ib+1];
-            r1=fft1_split_float[ia+2]+fft1_split_float[ib+2];
-            r2=fft1_split_float[ia+3]+fft1_split_float[ib+3];
+    for(j=0; j<siz; j+=4) {
+        ia=fft1_back_scramble[j  ]<<3;
+        ib=fft1_back_scramble[j+1]<<3;
+        ic=fft1_back_scramble[j+2]<<3;
+        id=fft1_back_scramble[j+3]<<3;
+        k=j<<3;
+        t1=fft1_split_float[ia  ]+fft1_split_float[ib  ];
+        t2=fft1_split_float[ia+1]+fft1_split_float[ib+1];
+        r1=fft1_split_float[ia+2]+fft1_split_float[ib+2];
+        r2=fft1_split_float[ia+3]+fft1_split_float[ib+3];
 
-            t3=fft1_split_float[ic  ]+fft1_split_float[id  ];
-            t4=fft1_split_float[ic+1]+fft1_split_float[id+1];
-            r3=fft1_split_float[ic+2]+fft1_split_float[id+2];
-            r4=fft1_split_float[ic+3]+fft1_split_float[id+3];
+        t3=fft1_split_float[ic  ]+fft1_split_float[id  ];
+        t4=fft1_split_float[ic+1]+fft1_split_float[id+1];
+        r3=fft1_split_float[ic+2]+fft1_split_float[id+2];
+        r4=fft1_split_float[ic+3]+fft1_split_float[id+3];
 
-            timf2_tmp[k  ]=t1+t3;
-            timf2_tmp[k+1]=t2+t4;
-            timf2_tmp[k+2]=r1+r3;
-            timf2_tmp[k+3]=r2+r4;
+        timf2_tmp[k  ]=t1+t3;
+        timf2_tmp[k+1]=t2+t4;
+        timf2_tmp[k+2]=r1+r3;
+        timf2_tmp[k+3]=r2+r4;
 
-            timf2_tmp[k+16]=t1-t3;
-            timf2_tmp[k+17]=t2-t4;
-            timf2_tmp[k+18]=r1-r3;
-            timf2_tmp[k+19]=r2-r4;
+        timf2_tmp[k+16]=t1-t3;
+        timf2_tmp[k+17]=t2-t4;
+        timf2_tmp[k+18]=r1-r3;
+        timf2_tmp[k+19]=r2-r4;
 
-            u1=fft1_split_float[ia+4]+fft1_split_float[ib+4];
-            u2=fft1_split_float[ia+5]+fft1_split_float[ib+5];
-            w1=fft1_split_float[ia+6]+fft1_split_float[ib+6];
-            w2=fft1_split_float[ia+7]+fft1_split_float[ib+7];
+        u1=fft1_split_float[ia+4]+fft1_split_float[ib+4];
+        u2=fft1_split_float[ia+5]+fft1_split_float[ib+5];
+        w1=fft1_split_float[ia+6]+fft1_split_float[ib+6];
+        w2=fft1_split_float[ia+7]+fft1_split_float[ib+7];
 
-            u3=fft1_split_float[ic+4]+fft1_split_float[id+4];
-            u4=fft1_split_float[ic+5]+fft1_split_float[id+5];
-            w3=fft1_split_float[ic+6]+fft1_split_float[id+6];
-            w4=fft1_split_float[ic+7]+fft1_split_float[id+7];
+        u3=fft1_split_float[ic+4]+fft1_split_float[id+4];
+        u4=fft1_split_float[ic+5]+fft1_split_float[id+5];
+        w3=fft1_split_float[ic+6]+fft1_split_float[id+6];
+        w4=fft1_split_float[ic+7]+fft1_split_float[id+7];
 
-            timf2_tmp[k+4]=u1+u3;
-            timf2_tmp[k+5]=u2+u4;
-            timf2_tmp[k+6]=w1+w3;
-            timf2_tmp[k+7]=w2+w4;
+        timf2_tmp[k+4]=u1+u3;
+        timf2_tmp[k+5]=u2+u4;
+        timf2_tmp[k+6]=w1+w3;
+        timf2_tmp[k+7]=w2+w4;
 
-            timf2_tmp[k+20]=u1-u3;
-            timf2_tmp[k+21]=u2-u4;
-            timf2_tmp[k+22]=w1-w3;
-            timf2_tmp[k+23]=w2-w4;
+        timf2_tmp[k+20]=u1-u3;
+        timf2_tmp[k+21]=u2-u4;
+        timf2_tmp[k+22]=w1-w3;
+        timf2_tmp[k+23]=w2-w4;
 
-            t5=fft1_split_float[ia  ]-fft1_split_float[ib  ];
-            t7=fft1_split_float[ia+1]-fft1_split_float[ib+1];
-            r5=fft1_split_float[ia+2]-fft1_split_float[ib+2];
-            r7=fft1_split_float[ia+3]-fft1_split_float[ib+3];
+        t5=fft1_split_float[ia  ]-fft1_split_float[ib  ];
+        t7=fft1_split_float[ia+1]-fft1_split_float[ib+1];
+        r5=fft1_split_float[ia+2]-fft1_split_float[ib+2];
+        r7=fft1_split_float[ia+3]-fft1_split_float[ib+3];
 
-            t10=fft1_split_float[ic  ]-fft1_split_float[id  ];
-            t6= fft1_split_float[ic+1]-fft1_split_float[id+1];
-            r10=fft1_split_float[ic+2]-fft1_split_float[id+2];
-            r6= fft1_split_float[ic+3]-fft1_split_float[id+3];
+        t10=fft1_split_float[ic  ]-fft1_split_float[id  ];
+        t6= fft1_split_float[ic+1]-fft1_split_float[id+1];
+        r10=fft1_split_float[ic+2]-fft1_split_float[id+2];
+        r6= fft1_split_float[ic+3]-fft1_split_float[id+3];
 
-            t11=t5-t6;
-            t8=t7-t10;
-            r11=r5-r6;
-            r8=r7-r10;
+        t11=t5-t6;
+        t8=t7-t10;
+        r11=r5-r6;
+        r8=r7-r10;
 
-            t12=t5+t6;
-            t9=t7+t10;
-            r12=r5+r6;
-            r9=r7+r10;
+        t12=t5+t6;
+        t9=t7+t10;
+        r12=r5+r6;
+        r9=r7+r10;
 
-            timf2_tmp[k+8]=t12;
-            timf2_tmp[k+9]=t8;
-            timf2_tmp[k+10]=r12;
-            timf2_tmp[k+11]=r8;
+        timf2_tmp[k+8]=t12;
+        timf2_tmp[k+9]=t8;
+        timf2_tmp[k+10]=r12;
+        timf2_tmp[k+11]=r8;
 
-            timf2_tmp[k+24]=t11;
-            timf2_tmp[k+25]=t9;
-            timf2_tmp[k+26]=r11;
-            timf2_tmp[k+27]=r9;
+        timf2_tmp[k+24]=t11;
+        timf2_tmp[k+25]=t9;
+        timf2_tmp[k+26]=r11;
+        timf2_tmp[k+27]=r9;
 
-            u5=fft1_split_float[ia+4]-fft1_split_float[ib+4];
-            u7=fft1_split_float[ia+5]-fft1_split_float[ib+5];
-            w5=fft1_split_float[ia+6]-fft1_split_float[ib+6];
-            w7=fft1_split_float[ia+7]-fft1_split_float[ib+7];
+        u5=fft1_split_float[ia+4]-fft1_split_float[ib+4];
+        u7=fft1_split_float[ia+5]-fft1_split_float[ib+5];
+        w5=fft1_split_float[ia+6]-fft1_split_float[ib+6];
+        w7=fft1_split_float[ia+7]-fft1_split_float[ib+7];
 
-            u10=fft1_split_float[ic+4]-fft1_split_float[id+4];
-            u6= fft1_split_float[ic+5]-fft1_split_float[id+5];
-            w10=fft1_split_float[ic+6]-fft1_split_float[id+6];
-            w6= fft1_split_float[ic+7]-fft1_split_float[id+7];
+        u10=fft1_split_float[ic+4]-fft1_split_float[id+4];
+        u6= fft1_split_float[ic+5]-fft1_split_float[id+5];
+        w10=fft1_split_float[ic+6]-fft1_split_float[id+6];
+        w6= fft1_split_float[ic+7]-fft1_split_float[id+7];
 
-            u11=u5-u6;
-            u8=u7-u10;
-            w11=w5-w6;
-            w8=w7-w10;
+        u11=u5-u6;
+        u8=u7-u10;
+        w11=w5-w6;
+        w8=w7-w10;
 
-            u12=u5+u6;
-            u9=u7+u10;
-            w12=w5+w6;
-            w9=w7+w10;
+        u12=u5+u6;
+        u9=u7+u10;
+        w12=w5+w6;
+        w9=w7+w10;
 
-            timf2_tmp[k+12]=u12;
-            timf2_tmp[k+13]=u8;
-            timf2_tmp[k+14]=w12;
-            timf2_tmp[k+15]=w8;
+        timf2_tmp[k+12]=u12;
+        timf2_tmp[k+13]=u8;
+        timf2_tmp[k+14]=w12;
+        timf2_tmp[k+15]=w8;
 
-            timf2_tmp[k+28]=u11;
-            timf2_tmp[k+29]=u9;
-            timf2_tmp[k+30]=w11;
-            timf2_tmp[k+31]=w9;
-        }
-    } else {
-        for(j=0; j<siz; j+=4) {
-            ia=fft1_back_scramble[j  ]<<3;
-            ib=fft1_back_scramble[j+1]<<3;
-            ic=fft1_back_scramble[j+2]<<3;
-            id=fft1_back_scramble[j+3]<<3;
-            k=j<<3;
-            t1=fft1_split_shi[ia  ]+fft1_split_shi[ib  ];
-            t2=fft1_split_shi[ia+1]+fft1_split_shi[ib+1];
-            r1=fft1_split_shi[ia+2]+fft1_split_shi[ib+2];
-            r2=fft1_split_shi[ia+3]+fft1_split_shi[ib+3];
-
-            t3=fft1_split_shi[ic  ]+fft1_split_shi[id  ];
-            t4=fft1_split_shi[ic+1]+fft1_split_shi[id+1];
-            r3=fft1_split_shi[ic+2]+fft1_split_shi[id+2];
-            r4=fft1_split_shi[ic+3]+fft1_split_shi[id+3];
-
-            timf2_tmp[k  ]=t1+t3;
-            timf2_tmp[k+1]=t2+t4;
-            timf2_tmp[k+2]=r1+r3;
-            timf2_tmp[k+3]=r2+r4;
-
-            timf2_tmp[k+16]=t1-t3;
-            timf2_tmp[k+17]=t2-t4;
-            timf2_tmp[k+18]=r1-r3;
-            timf2_tmp[k+19]=r2-r4;
-
-            u1=fft1_split_shi[ia+4]+fft1_split_shi[ib+4];
-            u2=fft1_split_shi[ia+5]+fft1_split_shi[ib+5];
-            w1=fft1_split_shi[ia+6]+fft1_split_shi[ib+6];
-            w2=fft1_split_shi[ia+7]+fft1_split_shi[ib+7];
-
-            u3=fft1_split_shi[ic+4]+fft1_split_shi[id+4];
-            u4=fft1_split_shi[ic+5]+fft1_split_shi[id+5];
-            w3=fft1_split_shi[ic+6]+fft1_split_shi[id+6];
-            w4=fft1_split_shi[ic+7]+fft1_split_shi[id+7];
-
-            timf2_tmp[k+4]=u1+u3;
-            timf2_tmp[k+5]=u2+u4;
-            timf2_tmp[k+6]=w1+w3;
-            timf2_tmp[k+7]=w2+w4;
-
-            timf2_tmp[k+20]=u1-u3;
-            timf2_tmp[k+21]=u2-u4;
-            timf2_tmp[k+22]=w1-w3;
-            timf2_tmp[k+23]=w2-w4;
-
-            t5=fft1_split_shi[ia  ]-fft1_split_shi[ib  ];
-            t7=fft1_split_shi[ia+1]-fft1_split_shi[ib+1];
-            r5=fft1_split_shi[ia+2]-fft1_split_shi[ib+2];
-            r7=fft1_split_shi[ia+3]-fft1_split_shi[ib+3];
-
-            t10=fft1_split_shi[ic  ]-fft1_split_shi[id  ];
-            t6= fft1_split_shi[ic+1]-fft1_split_shi[id+1];
-            r10=fft1_split_shi[ic+2]-fft1_split_shi[id+2];
-            r6= fft1_split_shi[ic+3]-fft1_split_shi[id+3];
-
-            t11=t5-t6;
-            t8=t7-t10;
-            r11=r5-r6;
-            r8=r7-r10;
-
-            t12=t5+t6;
-            t9=t7+t10;
-            r12=r5+r6;
-            r9=r7+r10;
-
-            timf2_tmp[k+8]=t12;
-            timf2_tmp[k+9]=t8;
-            timf2_tmp[k+10]=r12;
-            timf2_tmp[k+11]=r8;
-
-            timf2_tmp[k+24]=t11;
-            timf2_tmp[k+25]=t9;
-            timf2_tmp[k+26]=r11;
-            timf2_tmp[k+27]=r9;
-
-            u5=fft1_split_shi[ia+4]-fft1_split_shi[ib+4];
-            u7=fft1_split_shi[ia+5]-fft1_split_shi[ib+5];
-            w5=fft1_split_shi[ia+6]-fft1_split_shi[ib+6];
-            w7=fft1_split_shi[ia+7]-fft1_split_shi[ib+7];
-
-            u10=fft1_split_shi[ic+4]-fft1_split_shi[id+4];
-            u6= fft1_split_shi[ic+5]-fft1_split_shi[id+5];
-            w10=fft1_split_shi[ic+6]-fft1_split_shi[id+6];
-            w6= fft1_split_shi[ic+7]-fft1_split_shi[id+7];
-
-            u11=u5-u6;
-            u8=u7-u10;
-            w11=w5-w6;
-            w8=w7-w10;
-
-            u12=u5+u6;
-            u9=u7+u10;
-            w12=w5+w6;
-            w9=w7+w10;
-
-            timf2_tmp[k+12]=u12;
-            timf2_tmp[k+13]=u8;
-            timf2_tmp[k+14]=w12;
-            timf2_tmp[k+15]=w8;
-
-            timf2_tmp[k+28]=u11;
-            timf2_tmp[k+29]=u9;
-            timf2_tmp[k+30]=w11;
-            timf2_tmp[k+31]=w9;
-        }
+        timf2_tmp[k+28]=u11;
+        timf2_tmp[k+29]=u9;
+        timf2_tmp[k+30]=w11;
+        timf2_tmp[k+31]=w9;
     }
     m1=32;
     m2=16;
@@ -600,120 +490,61 @@ void fft1back_one(void)
     siz_d4=fft1_size/4;
     siz_m4=fft1_size*4;
     siz=fft1_size;
-    if(swfloat) {
-        for(j=0; j<siz; j+=4) {
-            ia=fft1_back_scramble[j  ]<<2;
-            ib=fft1_back_scramble[j+1]<<2;
-            ic=fft1_back_scramble[j+2]<<2;
-            id=fft1_back_scramble[j+3]<<2;
+    for(j=0; j<siz; j+=4) {
+        ia=fft1_back_scramble[j  ]<<2;
+        ib=fft1_back_scramble[j+1]<<2;
+        ic=fft1_back_scramble[j+2]<<2;
+        id=fft1_back_scramble[j+3]<<2;
 
-            t1=fft1_split_float[ia  ]+fft1_split_float[ib  ];
-            t2=fft1_split_float[ia+1]+fft1_split_float[ib+1];
-            r1=fft1_split_float[ia+2]+fft1_split_float[ib+2];
-            r2=fft1_split_float[ia+3]+fft1_split_float[ib+3];
-            k=j<<2;
-            t3=fft1_split_float[ic  ]+fft1_split_float[id  ];
-            t4=fft1_split_float[ic+1]+fft1_split_float[id+1];
-            r3=fft1_split_float[ic+2]+fft1_split_float[id+2];
-            r4=fft1_split_float[ic+3]+fft1_split_float[id+3];
+        t1=fft1_split_float[ia  ]+fft1_split_float[ib  ];
+        t2=fft1_split_float[ia+1]+fft1_split_float[ib+1];
+        r1=fft1_split_float[ia+2]+fft1_split_float[ib+2];
+        r2=fft1_split_float[ia+3]+fft1_split_float[ib+3];
+        k=j<<2;
+        t3=fft1_split_float[ic  ]+fft1_split_float[id  ];
+        t4=fft1_split_float[ic+1]+fft1_split_float[id+1];
+        r3=fft1_split_float[ic+2]+fft1_split_float[id+2];
+        r4=fft1_split_float[ic+3]+fft1_split_float[id+3];
 
-            t5=fft1_split_float[ia  ]-fft1_split_float[ib  ];
-            t7=fft1_split_float[ia+1]-fft1_split_float[ib+1];
-            r5=fft1_split_float[ia+2]-fft1_split_float[ib+2];
-            r7=fft1_split_float[ia+3]-fft1_split_float[ib+3];
+        t5=fft1_split_float[ia  ]-fft1_split_float[ib  ];
+        t7=fft1_split_float[ia+1]-fft1_split_float[ib+1];
+        r5=fft1_split_float[ia+2]-fft1_split_float[ib+2];
+        r7=fft1_split_float[ia+3]-fft1_split_float[ib+3];
 
-            t10=fft1_split_float[ic  ]-fft1_split_float[id  ];
-            t6= fft1_split_float[ic+1]-fft1_split_float[id+1];
-            r10=fft1_split_float[ic+2]-fft1_split_float[id+2];
-            r6= fft1_split_float[ic+3]-fft1_split_float[id+3];
+        t10=fft1_split_float[ic  ]-fft1_split_float[id  ];
+        t6= fft1_split_float[ic+1]-fft1_split_float[id+1];
+        r10=fft1_split_float[ic+2]-fft1_split_float[id+2];
+        r6= fft1_split_float[ic+3]-fft1_split_float[id+3];
 
-            timf2_tmp[k  ]=t1+t3;
-            timf2_tmp[k+1]=t2+t4;
-            timf2_tmp[k+2]=r1+r3;
-            timf2_tmp[k+3]=r2+r4;
+        timf2_tmp[k  ]=t1+t3;
+        timf2_tmp[k+1]=t2+t4;
+        timf2_tmp[k+2]=r1+r3;
+        timf2_tmp[k+3]=r2+r4;
 
-            timf2_tmp[k+8]=t1-t3;
-            timf2_tmp[k+9]=t2-t4;
-            timf2_tmp[k+10]=r1-r3;
-            timf2_tmp[k+11]=r2-r4;
+        timf2_tmp[k+8]=t1-t3;
+        timf2_tmp[k+9]=t2-t4;
+        timf2_tmp[k+10]=r1-r3;
+        timf2_tmp[k+11]=r2-r4;
 
-            t11=t5-t6;
-            t8=t7-t10;
-            r11=r5-r6;
-            r8=r7-r10;
+        t11=t5-t6;
+        t8=t7-t10;
+        r11=r5-r6;
+        r8=r7-r10;
 
-            t12=t5+t6;
-            t9=t7+t10;
-            r12=r5+r6;
-            r9=r7+r10;
+        t12=t5+t6;
+        t9=t7+t10;
+        r12=r5+r6;
+        r9=r7+r10;
 
-            timf2_tmp[k+4]=t12;
-            timf2_tmp[k+5]=t8;
-            timf2_tmp[k+6]=r12;
-            timf2_tmp[k+7]=r8;
+        timf2_tmp[k+4]=t12;
+        timf2_tmp[k+5]=t8;
+        timf2_tmp[k+6]=r12;
+        timf2_tmp[k+7]=r8;
 
-            timf2_tmp[k+12]=t11;
-            timf2_tmp[k+13]=t9;
-            timf2_tmp[k+14]=r11;
-            timf2_tmp[k+15]=r9;
-        }
-    } else {
-        for(j=0; j<siz; j+=4) {
-            ia=fft1_back_scramble[j  ]<<2;
-            ib=fft1_back_scramble[j+1]<<2;
-            ic=fft1_back_scramble[j+2]<<2;
-            id=fft1_back_scramble[j+3]<<2;
-
-            t1=fft1_split_shi[ia  ]+fft1_split_shi[ib  ];
-            t2=fft1_split_shi[ia+1]+fft1_split_shi[ib+1];
-            r1=fft1_split_shi[ia+2]+fft1_split_shi[ib+2];
-            r2=fft1_split_shi[ia+3]+fft1_split_shi[ib+3];
-            k=j<<2;
-            t3=fft1_split_shi[ic  ]+fft1_split_shi[id  ];
-            t4=fft1_split_shi[ic+1]+fft1_split_shi[id+1];
-            r3=fft1_split_shi[ic+2]+fft1_split_shi[id+2];
-            r4=fft1_split_shi[ic+3]+fft1_split_shi[id+3];
-
-            t5=fft1_split_shi[ia  ]-fft1_split_shi[ib  ];
-            t7=fft1_split_shi[ia+1]-fft1_split_shi[ib+1];
-            r5=fft1_split_shi[ia+2]-fft1_split_shi[ib+2];
-            r7=fft1_split_shi[ia+3]-fft1_split_shi[ib+3];
-
-            t10=fft1_split_shi[ic  ]-fft1_split_shi[id  ];
-            t6= fft1_split_shi[ic+1]-fft1_split_shi[id+1];
-            r10=fft1_split_shi[ic+2]-fft1_split_shi[id+2];
-            r6= fft1_split_shi[ic+3]-fft1_split_shi[id+3];
-
-            timf2_tmp[k  ]=t1+t3;
-            timf2_tmp[k+1]=t2+t4;
-            timf2_tmp[k+2]=r1+r3;
-            timf2_tmp[k+3]=r2+r4;
-
-            timf2_tmp[k+8]=t1-t3;
-            timf2_tmp[k+9]=t2-t4;
-            timf2_tmp[k+10]=r1-r3;
-            timf2_tmp[k+11]=r2-r4;
-
-            t11=t5-t6;
-            t8=t7-t10;
-            r11=r5-r6;
-            r8=r7-r10;
-
-            t12=t5+t6;
-            t9=t7+t10;
-            r12=r5+r6;
-            r9=r7+r10;
-
-            timf2_tmp[k+4]=t12;
-            timf2_tmp[k+5]=t8;
-            timf2_tmp[k+6]=r12;
-            timf2_tmp[k+7]=r8;
-
-            timf2_tmp[k+12]=t11;
-            timf2_tmp[k+13]=t9;
-            timf2_tmp[k+14]=r11;
-            timf2_tmp[k+15]=r9;
-        }
+        timf2_tmp[k+12]=t11;
+        timf2_tmp[k+13]=t9;
+        timf2_tmp[k+14]=r11;
+        timf2_tmp[k+15]=r9;
     }
     m1=64;
     m2=16;
@@ -870,327 +701,163 @@ void fft1back_fp_finish(void)
     pp=p0/mm;
     m=timf2_mask;
     siz=fft1_size;
-    if(swfloat) {
-        if(ui.rx_rf_channels==1) {
-            if(fft1_interleave_points==0) {
+    if(ui.rx_rf_channels==1) {
+        if(fft1_interleave_points==0) {
 // Without window we just transfer the points.
-                for(i=0; i<siz; i++) {
-                    timf2_float[p0  ]=ampfac*timf2_tmp[mm*i  ];
+            for(i=0; i<siz; i++) {
+                timf2_float[p0  ]=ampfac*timf2_tmp[mm*i  ];
+                timf2_pwr_float[pp]=timf2_float[p0]*timf2_float[p0];
+                timf2_float[p0+1]=ampfac*timf2_tmp[mm*i+1];
+                timf2_pwr_float[pp]+=timf2_float[p0+1]*timf2_float[p0+1];
+                timf2_float[p0+2]=ampfac*timf2_tmp[mm*i+2];
+                timf2_float[p0+3]=ampfac*timf2_tmp[mm*i+3];
+                pp++;
+                p0+=4;
+            }
+        } else {
+            if(fft1_interleave_points==fft1_size/2) {
+                // With a sin squared window we note that sin*sin+cos*cos=1 and add data.
+                k=fft1_size/2;
+                for(i=0; i<k; i++) {
+                    timf2_float[p0  ]+=ampfac*timf2_tmp[mm*i  ];
                     timf2_pwr_float[pp]=timf2_float[p0]*timf2_float[p0];
-                    timf2_float[p0+1]=ampfac*timf2_tmp[mm*i+1];
+                    timf2_float[p0+1]+=ampfac*timf2_tmp[mm*i+1];
                     timf2_pwr_float[pp]+=timf2_float[p0+1]*timf2_float[p0+1];
-                    timf2_float[p0+2]=ampfac*timf2_tmp[mm*i+2];
-                    timf2_float[p0+3]=ampfac*timf2_tmp[mm*i+3];
+                    timf2_float[p0+2]+=ampfac*timf2_tmp[mm*i+2];
+                    timf2_float[p0+3]+=ampfac*timf2_tmp[mm*i+3];
                     pp++;
                     p0+=4;
                 }
-            } else {
-                if(fft1_interleave_points==fft1_size/2) {
-                    // With a sin squared window we note that sin*sin+cos*cos=1 and add data.
-                    k=fft1_size/2;
-                    for(i=0; i<k; i++) {
-                        timf2_float[p0  ]+=ampfac*timf2_tmp[mm*i  ];
-                        timf2_pwr_float[pp]=timf2_float[p0]*timf2_float[p0];
-                        timf2_float[p0+1]+=ampfac*timf2_tmp[mm*i+1];
-                        timf2_pwr_float[pp]+=timf2_float[p0+1]*timf2_float[p0+1];
-                        timf2_float[p0+2]+=ampfac*timf2_tmp[mm*i+2];
-                        timf2_float[p0+3]+=ampfac*timf2_tmp[mm*i+3];
-                        pp++;
-                        p0+=4;
-                    }
-                    j=k*4;
-                    k=fft1_size*4;
-                    p0=p0&m;
-                    for(i=j; i<k; i++) {
-                        timf2_float[p0]=timf2_tmp[i]*ampfac;
-                        p0++;
-                    }
-                } else {
-                    // With an arbitrary window we multiply by the inverted window function
-                    // and take the center portion of each transform.
-                    ia=fft1_interleave_points/2;
-                    ib=fft1_size/2;
-                    kk=ia*4;
-                    for(i=ia; i<ib; i++) {
-                        t1=fft1_inverted_window[i]*ampfac;
-                        pp=p0>>2;
-                        timf2_float[p0  ]=t1*timf2_tmp[kk  ];
-                        timf2_pwr_float[pp]=timf2_float[p0]*timf2_float[p0];
-                        timf2_float[p0+1]=t1*timf2_tmp[kk+1];
-                        timf2_pwr_float[pp]+=timf2_float[p0+1]*timf2_float[p0+1];
-                        timf2_float[p0+2]=t1*timf2_tmp[kk+2];
-                        timf2_float[p0+3]=t1*timf2_tmp[kk+3];
-                        pp++;
-                        p0=(p0+4)&m;
-                        kk+=4;
-                    }
-                    for(i=ib; i>ia; i--) {
-                        t1=fft1_inverted_window[i]*ampfac;
-                        pp=p0>>2;
-                        timf2_float[p0  ]=t1*timf2_tmp[kk  ];
-                        timf2_pwr_float[pp]=timf2_float[p0]*timf2_float[p0];
-                        timf2_float[p0+1]=t1*timf2_tmp[kk+1];
-                        timf2_pwr_float[pp]+=timf2_float[p0+1]*timf2_float[p0+1];
-                        timf2_float[p0+2]=t1*timf2_tmp[kk+2];
-                        timf2_float[p0+3]=t1*timf2_tmp[kk+3];
-                        pp++;
-                        p0=(p0+4)&m;
-                        kk+=4;
-                    }
+                j=k*4;
+                k=fft1_size*4;
+                p0=p0&m;
+                for(i=j; i<k; i++) {
+                    timf2_float[p0]=timf2_tmp[i]*ampfac;
+                    p0++;
                 }
-            }
-        } else {
-            if(fft1_interleave_points==0) {
-                // Without window we just transfer the points.
-                for(i=0; i<siz; i++) {
-                    timf2_float[p0  ]=ampfac*timf2_tmp[mm*i  ];
+            } else {
+                // With an arbitrary window we multiply by the inverted window function
+                // and take the center portion of each transform.
+                ia=fft1_interleave_points/2;
+                ib=fft1_size/2;
+                kk=ia*4;
+                for(i=ia; i<ib; i++) {
+                    t1=fft1_inverted_window[i]*ampfac;
+                    pp=p0>>2;
+                    timf2_float[p0  ]=t1*timf2_tmp[kk  ];
                     timf2_pwr_float[pp]=timf2_float[p0]*timf2_float[p0];
-                    timf2_float[p0+1]=ampfac*timf2_tmp[mm*i+1];
+                    timf2_float[p0+1]=t1*timf2_tmp[kk+1];
                     timf2_pwr_float[pp]+=timf2_float[p0+1]*timf2_float[p0+1];
-                    timf2_float[p0+2]=ampfac*timf2_tmp[mm*i+2];
-                    timf2_pwr_float[pp]+=timf2_float[p0+2]*timf2_float[p0+2];
-                    timf2_float[p0+3]=ampfac*timf2_tmp[mm*i+3];
-                    timf2_pwr_float[pp]+=timf2_float[p0+3]*timf2_float[p0+3];
-                    timf2_float[p0+4]=ampfac*timf2_tmp[mm*i+4];
-                    timf2_float[p0+5]=ampfac*timf2_tmp[mm*i+5];
-                    timf2_float[p0+6]=ampfac*timf2_tmp[mm*i+6];
-                    timf2_float[p0+7]=ampfac*timf2_tmp[mm*i+7];
+                    timf2_float[p0+2]=t1*timf2_tmp[kk+2];
+                    timf2_float[p0+3]=t1*timf2_tmp[kk+3];
                     pp++;
-                    p0+=8;
+                    p0=(p0+4)&m;
+                    kk+=4;
                 }
-            } else {
-                if(fft1_interleave_points==fft1_size/2) {
-                    // With a sin squared window we note that sin*sin+cos*cos=1 and add data.
-                    k=fft1_size/2;
-                    for(i=0; i<k; i++) {
-                        timf2_float[p0  ]+=ampfac*timf2_tmp[mm*i  ];
-                        timf2_pwr_float[pp]=timf2_float[p0]*timf2_float[p0];
-                        timf2_float[p0+1]+=ampfac*timf2_tmp[mm*i+1];
-                        timf2_pwr_float[pp]+=timf2_float[p0+1]*timf2_float[p0+1];
-                        timf2_float[p0+2]+=ampfac*timf2_tmp[mm*i+2];
-                        timf2_pwr_float[pp]+=timf2_float[p0+2]*timf2_float[p0+2];
-                        timf2_float[p0+3]+=ampfac*timf2_tmp[mm*i+3];
-                        timf2_pwr_float[pp]+=timf2_float[p0+3]*timf2_float[p0+3];
-                        timf2_float[p0+4]+=ampfac*timf2_tmp[mm*i+4];
-                        timf2_float[p0+5]+=ampfac*timf2_tmp[mm*i+5];
-                        timf2_float[p0+6]+=ampfac*timf2_tmp[mm*i+6];
-                        timf2_float[p0+7]+=ampfac*timf2_tmp[mm*i+7];
-                        pp++;
-                        p0+=8;
-                    }
-                    j=k*8;
-                    k=fft1_size*8;
-                    p0=p0&m;
-                    for(i=j; i<k; i++) {
-                        timf2_float[p0]=timf2_tmp[i]*ampfac;
-                        p0++;
-                    }
-                } else {
-                    // With an arbitrary window we multiply by the inverted window function
-                    // and take the center portion of each transform.
-                    ia=fft1_interleave_points/2;
-                    ib=fft1_size/2;
-                    kk=ia*8;
-                    for(i=ia; i<ib; i++) {
-                        t1=fft1_inverted_window[i]*ampfac;
-                        pp=p0>>3;
-                        timf2_float[p0  ]=t1*timf2_tmp[kk  ];
-                        timf2_pwr_float[pp]=timf2_float[p0]*timf2_float[p0];
-                        timf2_float[p0+1]=t1*timf2_tmp[kk+1];
-                        timf2_pwr_float[pp]+=timf2_float[p0+1]*timf2_float[p0+1];
-                        timf2_float[p0+2]=t1*timf2_tmp[kk+2];
-                        timf2_pwr_float[pp]+=timf2_float[p0+2]*timf2_float[p0+2];
-                        timf2_float[p0+3]=t1*timf2_tmp[kk+3];
-                        timf2_pwr_float[pp]+=timf2_float[p0+3]*timf2_float[p0+3];
-                        timf2_float[p0+4]=t1*timf2_tmp[kk+4];
-                        timf2_float[p0+5]=t1*timf2_tmp[kk+5];
-                        timf2_float[p0+6]=t1*timf2_tmp[kk+6];
-                        timf2_float[p0+7]=t1*timf2_tmp[kk+7];
-                        pp++;
-                        p0=(p0+8)&m;
-                        kk+=8;
-                    }
-                    for(i=ib; i>ia; i--) {
-                        t1=fft1_inverted_window[i]*ampfac;
-                        pp=p0>>3;
-                        timf2_float[p0  ]=t1*timf2_tmp[kk  ];
-                        timf2_pwr_float[pp]=timf2_float[p0]*timf2_float[p0];
-                        timf2_float[p0+1]=t1*timf2_tmp[kk+1];
-                        timf2_pwr_float[pp]+=timf2_float[p0+1]*timf2_float[p0+1];
-                        timf2_float[p0+2]=t1*timf2_tmp[kk+2];
-                        timf2_pwr_float[pp]+=timf2_float[p0+2]*timf2_float[p0+2];
-                        timf2_float[p0+3]=t1*timf2_tmp[kk+3];
-                        timf2_pwr_float[pp]+=timf2_float[p0+3]*timf2_float[p0+3];
-                        timf2_float[p0+4]=t1*timf2_tmp[kk+4];
-                        timf2_float[p0+5]=t1*timf2_tmp[kk+5];
-                        timf2_float[p0+6]=t1*timf2_tmp[kk+6];
-                        timf2_float[p0+7]=t1*timf2_tmp[kk+7];
-                        pp++;
-                        p0=(p0+8)&m;
-                        kk+=8;
-                    }
+                for(i=ib; i>ia; i--) {
+                    t1=fft1_inverted_window[i]*ampfac;
+                    pp=p0>>2;
+                    timf2_float[p0  ]=t1*timf2_tmp[kk  ];
+                    timf2_pwr_float[pp]=timf2_float[p0]*timf2_float[p0];
+                    timf2_float[p0+1]=t1*timf2_tmp[kk+1];
+                    timf2_pwr_float[pp]+=timf2_float[p0+1]*timf2_float[p0+1];
+                    timf2_float[p0+2]=t1*timf2_tmp[kk+2];
+                    timf2_float[p0+3]=t1*timf2_tmp[kk+3];
+                    pp++;
+                    p0=(p0+4)&m;
+                    kk+=4;
                 }
             }
         }
     } else {
-        if(ui.rx_rf_channels==1) {
-            if(fft1_interleave_points==0) {
-                // Without window we just transfer the points.
-                for(i=0; i<siz; i++) {
-                    timf2_shi[p0  ]=ampfac*timf2_tmp[mm*i  ];
-                    timf2_pwr_int[pp]=timf2_shi[p0]*timf2_shi[p0];
-                    timf2_shi[p0+1]=ampfac*timf2_tmp[mm*i+1];
-                    timf2_pwr_int[pp]+=timf2_shi[p0+1]*timf2_shi[p0+1];
-                    timf2_shi[p0+2]=ampfac*timf2_tmp[mm*i+2];
-                    timf2_shi[p0+3]=ampfac*timf2_tmp[mm*i+3];
-                    pp++;
-                    p0+=4;
-                }
-            } else {
-                if(fft1_interleave_points==fft1_size/2) {
-                    // With a sin squared window we note that sin*sin+cos*cos=1 and add data.
-                    k=fft1_size/2;
-                    for(i=0; i<k; i++) {
-                        timf2_shi[p0  ]+=ampfac*timf2_tmp[mm*i  ];
-                        timf2_pwr_int[pp]=timf2_shi[p0]*timf2_shi[p0];
-                        timf2_shi[p0+1]+=ampfac*timf2_tmp[mm*i+1];
-                        timf2_pwr_int[pp]+=timf2_shi[p0+1]*timf2_shi[p0+1];
-                        timf2_shi[p0+2]+=ampfac*timf2_tmp[mm*i+2];
-                        timf2_shi[p0+3]+=ampfac*timf2_tmp[mm*i+3];
-                        pp++;
-                        p0+=4;
-                    }
-                    j=k*4;
-                    k=fft1_size*4;
-                    p0=p0&m;
-                    for(i=j; i<k; i++) {
-                        timf2_shi[p0]=timf2_tmp[i]*ampfac;
-                        p0++;
-                    }
-                } else {
-                    // With an arbitrary window we multiply by the inverted window function
-                    // and take the center portion of each transform.
-                    ia=fft1_interleave_points/2;
-                    ib=fft1_size/2;
-                    kk=ia*4;
-                    for(i=ia; i<ib; i++) {
-                        t1=fft1_inverted_window[i]*ampfac;
-                        pp=p0>>2;
-                        timf2_shi[p0  ]=t1*timf2_tmp[kk  ];
-                        timf2_pwr_int[pp]=timf2_shi[p0]*timf2_shi[p0];
-                        timf2_shi[p0+1]=t1*timf2_tmp[kk+1];
-                        timf2_pwr_int[pp]+=timf2_shi[p0+1]*timf2_shi[p0+1];
-                        timf2_shi[p0+2]=t1*timf2_tmp[kk+2];
-                        timf2_shi[p0+3]=t1*timf2_tmp[kk+3];
-                        pp++;
-                        p0=(p0+4)&m;
-                        kk+=4;
-                    }
-                    for(i=ib; i>ia; i--) {
-                        t1=fft1_inverted_window[i]*ampfac;
-                        pp=p0>>2;
-                        timf2_shi[p0  ]=t1*timf2_tmp[kk  ];
-                        timf2_pwr_int[pp]=timf2_shi[p0]*timf2_shi[p0];
-                        timf2_shi[p0+1]=t1*timf2_tmp[kk+1];
-                        timf2_pwr_int[pp]+=timf2_shi[p0+1]*timf2_shi[p0+1];
-                        timf2_shi[p0+2]=t1*timf2_tmp[kk+2];
-                        timf2_shi[p0+3]=t1*timf2_tmp[kk+3];
-                        pp++;
-                        p0=(p0+4)&m;
-                        kk+=4;
-                    }
-                }
+        if(fft1_interleave_points==0) {
+            // Without window we just transfer the points.
+            for(i=0; i<siz; i++) {
+                timf2_float[p0  ]=ampfac*timf2_tmp[mm*i  ];
+                timf2_pwr_float[pp]=timf2_float[p0]*timf2_float[p0];
+                timf2_float[p0+1]=ampfac*timf2_tmp[mm*i+1];
+                timf2_pwr_float[pp]+=timf2_float[p0+1]*timf2_float[p0+1];
+                timf2_float[p0+2]=ampfac*timf2_tmp[mm*i+2];
+                timf2_pwr_float[pp]+=timf2_float[p0+2]*timf2_float[p0+2];
+                timf2_float[p0+3]=ampfac*timf2_tmp[mm*i+3];
+                timf2_pwr_float[pp]+=timf2_float[p0+3]*timf2_float[p0+3];
+                timf2_float[p0+4]=ampfac*timf2_tmp[mm*i+4];
+                timf2_float[p0+5]=ampfac*timf2_tmp[mm*i+5];
+                timf2_float[p0+6]=ampfac*timf2_tmp[mm*i+6];
+                timf2_float[p0+7]=ampfac*timf2_tmp[mm*i+7];
+                pp++;
+                p0+=8;
             }
         } else {
-            if(fft1_interleave_points==0) {
-                // Without window we just transfer the points.
-                for(i=0; i<siz; i++) {
-                    timf2_shi[p0  ]=ampfac*timf2_tmp[mm*i  ];
-                    timf2_pwr_int[pp]=(timf2_shi[p0]*timf2_shi[p0])>>1;
-                    timf2_shi[p0+1]=ampfac*timf2_tmp[mm*i+1];
-                    timf2_pwr_int[pp]+=(timf2_shi[p0+1]*timf2_shi[p0+1])>>1;
-                    timf2_shi[p0+2]=ampfac*timf2_tmp[mm*i+2];
-                    timf2_pwr_int[pp]+=(timf2_shi[p0+2]*timf2_shi[p0+2])>>1;
-                    timf2_shi[p0+3]=ampfac*timf2_tmp[mm*i+3];
-                    timf2_pwr_int[pp]+=(timf2_shi[p0+3]*timf2_shi[p0+3])>>1;
-                    timf2_shi[p0+4]=ampfac*timf2_tmp[mm*i+4];
-                    timf2_shi[p0+5]=ampfac*timf2_tmp[mm*i+5];
-                    timf2_shi[p0+6]=ampfac*timf2_tmp[mm*i+6];
-                    timf2_shi[p0+7]=ampfac*timf2_tmp[mm*i+7];
+            if(fft1_interleave_points==fft1_size/2) {
+                // With a sin squared window we note that sin*sin+cos*cos=1 and add data.
+                k=fft1_size/2;
+                for(i=0; i<k; i++) {
+                    timf2_float[p0  ]+=ampfac*timf2_tmp[mm*i  ];
+                    timf2_pwr_float[pp]=timf2_float[p0]*timf2_float[p0];
+                    timf2_float[p0+1]+=ampfac*timf2_tmp[mm*i+1];
+                    timf2_pwr_float[pp]+=timf2_float[p0+1]*timf2_float[p0+1];
+                    timf2_float[p0+2]+=ampfac*timf2_tmp[mm*i+2];
+                    timf2_pwr_float[pp]+=timf2_float[p0+2]*timf2_float[p0+2];
+                    timf2_float[p0+3]+=ampfac*timf2_tmp[mm*i+3];
+                    timf2_pwr_float[pp]+=timf2_float[p0+3]*timf2_float[p0+3];
+                    timf2_float[p0+4]+=ampfac*timf2_tmp[mm*i+4];
+                    timf2_float[p0+5]+=ampfac*timf2_tmp[mm*i+5];
+                    timf2_float[p0+6]+=ampfac*timf2_tmp[mm*i+6];
+                    timf2_float[p0+7]+=ampfac*timf2_tmp[mm*i+7];
                     pp++;
                     p0+=8;
                 }
+                j=k*8;
+                k=fft1_size*8;
+                p0=p0&m;
+                for(i=j; i<k; i++) {
+                    timf2_float[p0]=timf2_tmp[i]*ampfac;
+                    p0++;
+                }
             } else {
-                if(fft1_interleave_points==fft1_size/2) {
-                    // With a sin squared window we note that sin*sin+cos*cos=1 and add data.
-                    k=fft1_size/2;
-                    for(i=0; i<k; i++) {
-                        timf2_shi[p0  ]+=ampfac*timf2_tmp[mm*i  ];
-                        timf2_pwr_int[pp]=(timf2_shi[p0]*timf2_shi[p0])>>1;
-                        timf2_shi[p0+1]+=ampfac*timf2_tmp[mm*i+1];
-                        timf2_pwr_int[pp]+=(timf2_shi[p0+1]*timf2_shi[p0+1])>>1;
-                        timf2_shi[p0+2]+=ampfac*timf2_tmp[mm*i+2];
-                        timf2_pwr_int[pp]+=(timf2_shi[p0+2]*timf2_shi[p0+2])>>1;
-                        timf2_shi[p0+3]+=ampfac*timf2_tmp[mm*i+3];
-                        timf2_pwr_int[pp]+=(timf2_shi[p0+3]*timf2_shi[p0+3])>>1;
-                        timf2_shi[p0+4]+=ampfac*timf2_tmp[mm*i+4];
-                        timf2_shi[p0+5]+=ampfac*timf2_tmp[mm*i+5];
-                        timf2_shi[p0+6]+=ampfac*timf2_tmp[mm*i+6];
-                        timf2_shi[p0+7]+=ampfac*timf2_tmp[mm*i+7];
-                        pp++;
-                        p0+=8;
-                    }
-                    j=k*8;
-                    k=fft1_size*8;
-                    p0=p0&m;
-                    for(i=j; i<k; i++) {
-                        timf2_shi[p0]=timf2_tmp[i]*ampfac;
-                        p0++;
-                    }
-                } else {
-                    // With an arbitrary window we multiply by the inverted window function
-                    // and take the center portion of each transform.
-                    ia=fft1_interleave_points/2;
-                    ib=fft1_size/2;
-                    kk=ia*8;
-                    for(i=ia; i<ib; i++) {
-                        t1=fft1_inverted_window[i]*ampfac;
-                        pp=p0>>3;
-                        timf2_shi[p0  ]=t1*timf2_tmp[kk  ];
-                        timf2_pwr_int[pp]=(timf2_shi[p0]*timf2_shi[p0])>>1;
-                        timf2_shi[p0+1]=t1*timf2_tmp[kk+1];
-                        timf2_pwr_int[pp]+=(timf2_shi[p0+1]*timf2_shi[p0+1])>>1;
-                        timf2_shi[p0+2]=t1*timf2_tmp[kk+2];
-                        timf2_pwr_int[pp]+=(timf2_shi[p0+2]*timf2_shi[p0+2])>>1;
-                        timf2_shi[p0+3]=t1*timf2_tmp[kk+3];
-                        timf2_pwr_int[pp]+=(timf2_shi[p0+3]*timf2_shi[p0+3])>>1;
-                        timf2_shi[p0+4]=t1*timf2_tmp[kk+4];
-                        timf2_shi[p0+5]=t1*timf2_tmp[kk+5];
-                        timf2_shi[p0+6]=t1*timf2_tmp[kk+6];
-                        timf2_shi[p0+7]=t1*timf2_tmp[kk+7];
-                        pp++;
-                        p0=(p0+8)&m;
-                        kk+=8;
-                    }
-                    for(i=ib; i>ia; i--) {
-                        t1=fft1_inverted_window[i]*ampfac;
-                        pp=p0>>3;
-                        timf2_shi[p0  ]=t1*timf2_tmp[kk  ];
-                        timf2_pwr_int[pp]=(timf2_shi[p0]*timf2_shi[p0])>>1;
-                        timf2_shi[p0+1]=t1*timf2_tmp[kk+1];
-                        timf2_pwr_int[pp]+=(timf2_shi[p0+1]*timf2_shi[p0+1])>>1;
-                        timf2_shi[p0+2]=t1*timf2_tmp[kk+2];
-                        timf2_pwr_int[pp]+=(timf2_shi[p0+2]*timf2_shi[p0+2])>>1;
-                        timf2_shi[p0+3]=t1*timf2_tmp[kk+3];
-                        timf2_pwr_int[pp]+=(timf2_shi[p0+3]*timf2_shi[p0+3])>>1;
-                        timf2_shi[p0+4]=t1*timf2_tmp[kk+4];
-                        timf2_shi[p0+5]=t1*timf2_tmp[kk+5];
-                        timf2_shi[p0+6]=t1*timf2_tmp[kk+6];
-                        timf2_shi[p0+7]=t1*timf2_tmp[kk+7];
-                        pp++;
-                        p0=(p0+8)&m;
-                        kk+=8;
-                    }
+                // With an arbitrary window we multiply by the inverted window function
+                // and take the center portion of each transform.
+                ia=fft1_interleave_points/2;
+                ib=fft1_size/2;
+                kk=ia*8;
+                for(i=ia; i<ib; i++) {
+                    t1=fft1_inverted_window[i]*ampfac;
+                    pp=p0>>3;
+                    timf2_float[p0  ]=t1*timf2_tmp[kk  ];
+                    timf2_pwr_float[pp]=timf2_float[p0]*timf2_float[p0];
+                    timf2_float[p0+1]=t1*timf2_tmp[kk+1];
+                    timf2_pwr_float[pp]+=timf2_float[p0+1]*timf2_float[p0+1];
+                    timf2_float[p0+2]=t1*timf2_tmp[kk+2];
+                    timf2_pwr_float[pp]+=timf2_float[p0+2]*timf2_float[p0+2];
+                    timf2_float[p0+3]=t1*timf2_tmp[kk+3];
+                    timf2_pwr_float[pp]+=timf2_float[p0+3]*timf2_float[p0+3];
+                    timf2_float[p0+4]=t1*timf2_tmp[kk+4];
+                    timf2_float[p0+5]=t1*timf2_tmp[kk+5];
+                    timf2_float[p0+6]=t1*timf2_tmp[kk+6];
+                    timf2_float[p0+7]=t1*timf2_tmp[kk+7];
+                    pp++;
+                    p0=(p0+8)&m;
+                    kk+=8;
+                }
+                for(i=ib; i>ia; i--) {
+                    t1=fft1_inverted_window[i]*ampfac;
+                    pp=p0>>3;
+                    timf2_float[p0  ]=t1*timf2_tmp[kk  ];
+                    timf2_pwr_float[pp]=timf2_float[p0]*timf2_float[p0];
+                    timf2_float[p0+1]=t1*timf2_tmp[kk+1];
+                    timf2_pwr_float[pp]+=timf2_float[p0+1]*timf2_float[p0+1];
+                    timf2_float[p0+2]=t1*timf2_tmp[kk+2];
+                    timf2_pwr_float[pp]+=timf2_float[p0+2]*timf2_float[p0+2];
+                    timf2_float[p0+3]=t1*timf2_tmp[kk+3];
+                    timf2_pwr_float[pp]+=timf2_float[p0+3]*timf2_float[p0+3];
+                    timf2_float[p0+4]=t1*timf2_tmp[kk+4];
+                    timf2_float[p0+5]=t1*timf2_tmp[kk+5];
+                    timf2_float[p0+6]=t1*timf2_tmp[kk+6];
+                    timf2_float[p0+7]=t1*timf2_tmp[kk+7];
+                    pp++;
+                    p0=(p0+8)&m;
+                    kk+=8;
                 }
             }
         }

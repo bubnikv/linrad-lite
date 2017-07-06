@@ -48,7 +48,6 @@ void collect_initial_spectrum(void)
     int kk, res, imax, jmax, lowres_imax, imax2, jmax2 ;
     float x2, y2, re_xy, im_xy;
     float *x;
-    short int * zxy;
     TWOCHAN_POWER *pxy;
     if(pg.adapt == 0 && ui.rx_rf_channels == 2)pol_known = 0;
     else pol_known=1;
@@ -126,40 +125,21 @@ search_again:
 // The power spectra have to be calculated directly from the transforms
 // since the channel is a linear combination of two channels.
             for(i=0; i<fq_points*afc_speknum; i++)afc_spectrum[i]=0;
-            if(swmmx_fft2) {
-                for(i=0; i<ag.fit_points; i++) {
-                    drift=-drifti*afc_half_speknum;
-                    zxy=&fft2_short_int[4*np*fft2_size];
-                    for(j=0; j<afc_speknum; j++) {
-                        fqp=first_fqp+drift;
-                        for(k=0; k<kk; k++) {
-                            m=4*(k+fqp);
-                            t1=pg.c1*zxy[m  ]+pg.c2*zxy[m+2]+pg.c3*zxy[m+3];
-                            t2=pg.c1*zxy[m+1]+pg.c2*zxy[m+3]-pg.c3*zxy[m+2];
-                            afc_spectrum[fq_points*j+k]+=t1*t1+t2*t2;
-                        }
-                        drift+=drifti;
+            for(i=0; i<ag.fit_points; i++) {
+                drift=-drifti*afc_half_speknum;
+                x=&fftx[np*fftx_size*4];
+                for(j=0; j<afc_speknum; j++) {
+                    fqp=first_fqp+drift;
+                    for(k=0; k<kk; k++) {
+                        m=4*(k+fqp);
+                        t1=pg.c1*x[m  ]+pg.c2*x[m+2]+pg.c3*x[m+3];
+                        t2=pg.c1*x[m+1]+pg.c2*x[m+3]-pg.c3*x[m+2];
+                        afc_spectrum[fq_points*j+k]+=t1*t1+t2*t2;
                     }
-                    np=(np+fftxn_mask)&fftxn_mask;
-                    drifti+=afc_drift_step;
+                    drift+=drifti;
                 }
-            } else {
-                for(i=0; i<ag.fit_points; i++) {
-                    drift=-drifti*afc_half_speknum;
-                    x=&fftx[np*fftx_size*4];
-                    for(j=0; j<afc_speknum; j++) {
-                        fqp=first_fqp+drift;
-                        for(k=0; k<kk; k++) {
-                            m=4*(k+fqp);
-                            t1=pg.c1*x[m  ]+pg.c2*x[m+2]+pg.c3*x[m+3];
-                            t2=pg.c1*x[m+1]+pg.c2*x[m+3]-pg.c3*x[m+2];
-                            afc_spectrum[fq_points*j+k]+=t1*t1+t2*t2;
-                        }
-                        drift+=drifti;
-                    }
-                    np=(np+fftxn_mask)&fftxn_mask;
-                    drifti+=afc_drift_step;
-                }
+                np=(np+fftxn_mask)&fftxn_mask;
+                drifti+=afc_drift_step;
             }
         }
     }
@@ -693,7 +673,6 @@ void make_ag_point(int np, int nno)
     float pos;
     float *pwra;
     float *x;
-    short int * zxy;
 // Get the frequency of a signal that is very close to
 // afc_fq
 // Store old values extrapolated from old data (we might like to compare)
@@ -741,46 +720,24 @@ void make_ag_point(int np, int nno)
             na=(na+1)&fftxn_mask;
         }
     } else {
-        if(swmmx_fft2) {
-            for(i=0; i<afct_avgnum; i++) {
-                zxy=&fft2_short_int[4*na*fft2_size];
-                t3=afct_window[i];
-                for(j=0; j<no_of_points; j++) {
-                    m=4*(psref+j);
-                    t1=pg.c1*zxy[m  ]+pg.c2*zxy[m+2]+pg.c3*zxy[m+3];
-                    t2=pg.c1*zxy[m+1]+pg.c2*zxy[m+3]-pg.c3*zxy[m+2];
-                    signal1[j]+=t3*(t1*t1+t2*t2);
-                    m=4*(pn1+j);
-                    t1=pg.c1*zxy[m  ]+pg.c2*zxy[m+2]+pg.c3*zxy[m+3];
-                    t2=pg.c1*zxy[m+1]+pg.c2*zxy[m+3]-pg.c3*zxy[m+2];
-                    noise1[j]+=t3*(t1*t1+t2*t2);
-                    m=4*(pn2+j);
-                    t1=pg.c1*zxy[m  ]+pg.c2*zxy[m+2]+pg.c3*zxy[m+3];
-                    t2=pg.c1*zxy[m+1]+pg.c2*zxy[m+3]-pg.c3*zxy[m+2];
-                    noise2[j]+=t3*(t1*t1+t2*t2);
-                }
-                na=(na+1)&fftxn_mask;
+        for(i=0; i<afct_avgnum; i++) {
+            x=&fftx[na*fftx_size*4];
+            t3=afct_window[i];
+            for(j=0; j<no_of_points; j++) {
+                m=4*(psref+j);
+                t1=pg.c1*x[m  ]+pg.c2*x[m+2]+pg.c3*x[m+3];
+                t2=pg.c1*x[m+1]+pg.c2*x[m+3]-pg.c3*x[m+2];
+                signal1[j]+=t3*(t1*t1+t2*t2);
+                m=4*(pn1+j);
+                t1=pg.c1*x[m  ]+pg.c2*x[m+2]+pg.c3*x[m+3];
+                t2=pg.c1*x[m+1]+pg.c2*x[m+3]-pg.c3*x[m+2];
+                noise1[j]+=t3*(t1*t1+t2*t2);
+                m=4*(pn2+j);
+                t1=pg.c1*x[m  ]+pg.c2*x[m+2]+pg.c3*x[m+3];
+                t2=pg.c1*x[m+1]+pg.c2*x[m+3]-pg.c3*x[m+2];
+                noise2[j]+=t3*(t1*t1+t2*t2);
             }
-        } else {
-            for(i=0; i<afct_avgnum; i++) {
-                x=&fftx[na*fftx_size*4];
-                t3=afct_window[i];
-                for(j=0; j<no_of_points; j++) {
-                    m=4*(psref+j);
-                    t1=pg.c1*x[m  ]+pg.c2*x[m+2]+pg.c3*x[m+3];
-                    t2=pg.c1*x[m+1]+pg.c2*x[m+3]-pg.c3*x[m+2];
-                    signal1[j]+=t3*(t1*t1+t2*t2);
-                    m=4*(pn1+j);
-                    t1=pg.c1*x[m  ]+pg.c2*x[m+2]+pg.c3*x[m+3];
-                    t2=pg.c1*x[m+1]+pg.c2*x[m+3]-pg.c3*x[m+2];
-                    noise1[j]+=t3*(t1*t1+t2*t2);
-                    m=4*(pn2+j);
-                    t1=pg.c1*x[m  ]+pg.c2*x[m+2]+pg.c3*x[m+3];
-                    t2=pg.c1*x[m+1]+pg.c2*x[m+3]-pg.c3*x[m+2];
-                    noise2[j]+=t3*(t1*t1+t2*t2);
-                }
-                na=(na+1)&fftxn_mask;
-            }
+            na=(na+1)&fftxn_mask;
         }
     }
 // Locate the maximum point.

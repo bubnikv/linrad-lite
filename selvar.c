@@ -98,7 +98,6 @@ float *mix1_eval_noise;
 float *mix1_fitted_fq;
 
 float *spur_table;
-short int *spur_table_mmx;
 int *spur_location;
 int *spur_flag;
 float *spur_power;

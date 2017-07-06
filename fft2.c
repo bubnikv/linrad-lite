@@ -31,22 +31,7 @@
 #include "sigdef.h"
 #include "thrdef.h"
 
-#if CPU == CPU_INTEL
-void fft2mmx_a2_nowin(void);
-void fft2mmx_a2_win(void);
-void fft2mmx_a1_nowin(void);
-void fft2mmx_a1_win(void);
-void fft2_mmx_b1hi(void);
-void fft2_mmx_b2hi(void);
-void fft2_mmx_b1med(void);
-void fft2_mmx_b2med(void);
-void fft2_mmx_b1low(void);
-void fft2_mmx_b2low(void);
-void fft2_mmx_c1(void);
-void fft2_mmx_c2(void);
-#endif
 void update_wg_waterf(void);
-
 
 void make_fft2(void)
 {
@@ -72,9 +57,6 @@ void make_fft2(void)
     float *z,*fftxy, *fftab, *pwra;
     TWOCHAN_POWER *ya;
     int p0, mask;
-#if CPU == CPU_INTEL
-    short int *zxy;
-#endif
 // The second fft may be very large. To produce optimum sensitivity
 // bandwidths below 1Hz may be desireable.
 // Every time this routine is called it will do just a fraction of
@@ -90,32 +72,16 @@ void make_fft2(void)
                 mask=timf2_mask;
                 p0=timf2_px;
                 if(genparm[SECOND_FFT_SINPOW] != 0) {
-                    if(swfloat) {
-                        for(i=0; i<siz; i++) {
-                            z[2*i  ]=fft2_window[i]*(timf2_float[p0  ]+timf2_float[p0+2]);
-                            z[2*i+1]=fft2_window[i]*(timf2_float[p0+1]+timf2_float[p0+3]);
-                            p0=(p0+4)&mask;
-                        }
-                    } else {
-                        for(i=0; i<siz; i++) {
-                            z[2*i  ]=fft2_window[i]*(timf2_shi[p0  ]+timf2_shi[p0+2]);
-                            z[2*i+1]=fft2_window[i]*(timf2_shi[p0+1]+timf2_shi[p0+3]);
-                            p0=(p0+4)&mask;
-                        }
+                    for(i=0; i<siz; i++) {
+                        z[2*i  ]=fft2_window[i]*(timf2_float[p0  ]+timf2_float[p0+2]);
+                        z[2*i+1]=fft2_window[i]*(timf2_float[p0+1]+timf2_float[p0+3]);
+                        p0=(p0+4)&mask;
                     }
                 } else {
-                    if(swfloat) {
-                        for(i=0; i<siz; i++) {
-                            z[2*i  ]=(timf2_float[p0  ]+timf2_float[p0+2]);
-                            z[2*i+1]=(timf2_float[p0+1]+timf2_float[p0+3]);
-                            p0=(p0+4)&mask;
-                        }
-                    } else {
-                        for(i=0; i<siz; i++) {
-                            z[2*i  ]=(timf2_shi[p0  ]+timf2_shi[p0+2]);
-                            z[2*i+1]=(timf2_shi[p0+1]+timf2_shi[p0+3]);
-                            p0=(p0+4)&mask;
-                        }
+                    for(i=0; i<siz; i++) {
+                        z[2*i  ]=(timf2_float[p0  ]+timf2_float[p0+2]);
+                        z[2*i+1]=(timf2_float[p0+1]+timf2_float[p0+3]);
+                        p0=(p0+4)&mask;
                     }
                 }
                 big_fftforward(siz, fft2_n, z,
@@ -131,282 +97,114 @@ void make_fft2(void)
                 make_fft2_status=FFT2_B;
             } else {
 // Use MMX routines
-#if CPU == CPU_INTEL
-                if(genparm[SECOND_FFT_SINPOW] == 0) {
-                    fft2mmx_a1_nowin();
-                } else {
-                    fft2mmx_a1_win();
-                }
-#else
                 lirerr(995346);
-#endif
                 make_fft2_status=FFT2_MMXB;
                 return;
             }
             p0=timf2_px;
             if(genparm[SECOND_FFT_SINPOW] == 0) {
-                if(swfloat) {
-                    for(j=0; j<siz; j+=4) {
-                        ia=(p0+4*fft2_bigpermute[j  ])&mask;
-                        ib=(p0+4*fft2_bigpermute[j+1])&mask;
-                        ic=(p0+4*fft2_bigpermute[j+2])&mask;
-                        id=(p0+4*fft2_bigpermute[j+3])&mask;
+                for(j=0; j<siz; j+=4) {
+                    ia=(p0+4*fft2_bigpermute[j  ])&mask;
+                    ib=(p0+4*fft2_bigpermute[j+1])&mask;
+                    ic=(p0+4*fft2_bigpermute[j+2])&mask;
+                    id=(p0+4*fft2_bigpermute[j+3])&mask;
 
-                        t1=  timf2_float[ia  ]+timf2_float[ib  ]+
-                             timf2_float[ia+2]+timf2_float[ib+2];
-                        t2=-(timf2_float[ia+1]+timf2_float[ib+1]+
-                             timf2_float[ia+3]+timf2_float[ib+3]);
+                    t1=  timf2_float[ia  ]+timf2_float[ib  ]+
+                         timf2_float[ia+2]+timf2_float[ib+2];
+                    t2=-(timf2_float[ia+1]+timf2_float[ib+1]+
+                         timf2_float[ia+3]+timf2_float[ib+3]);
 
-                        t3=  timf2_float[ic  ]+timf2_float[id  ]+
-                             timf2_float[ic+2]+timf2_float[id+2];
-                        t4=-(timf2_float[ic+1]+timf2_float[id+1]+
-                             timf2_float[ic+3]+timf2_float[id+3]);
+                    t3=  timf2_float[ic  ]+timf2_float[id  ]+
+                         timf2_float[ic+2]+timf2_float[id+2];
+                    t4=-(timf2_float[ic+1]+timf2_float[id+1]+
+                         timf2_float[ic+3]+timf2_float[id+3]);
 
-                        t5=  timf2_float[ia  ]-timf2_float[ib  ]+
-                             timf2_float[ia+2]-timf2_float[ib+2];
-                        t7=-(timf2_float[ia+1]-timf2_float[ib+1]+
-                             timf2_float[ia+3]-timf2_float[ib+3]);
+                    t5=  timf2_float[ia  ]-timf2_float[ib  ]+
+                         timf2_float[ia+2]-timf2_float[ib+2];
+                    t7=-(timf2_float[ia+1]-timf2_float[ib+1]+
+                         timf2_float[ia+3]-timf2_float[ib+3]);
 
-                        t10=  timf2_float[ic  ]-timf2_float[id  ]+
-                              timf2_float[ic+2]-timf2_float[id+2];
-                        t6= -(timf2_float[ic+1]-timf2_float[id+1]+
-                              timf2_float[ic+3]-timf2_float[id+3]);
+                    t10=  timf2_float[ic  ]-timf2_float[id  ]+
+                          timf2_float[ic+2]-timf2_float[id+2];
+                    t6= -(timf2_float[ic+1]-timf2_float[id+1]+
+                          timf2_float[ic+3]-timf2_float[id+3]);
 
-                        z[2*j  ]=t1+t3;
-                        z[2*j+1]=t2+t4;
+                    z[2*j  ]=t1+t3;
+                    z[2*j+1]=t2+t4;
 
-                        z[2*j+4]=t1-t3;
-                        z[2*j+5]=t2-t4;
+                    z[2*j+4]=t1-t3;
+                    z[2*j+5]=t2-t4;
 
-                        t11=t5-t6;
-                        t8=t7-t10;
+                    t11=t5-t6;
+                    t8=t7-t10;
 
-                        t12=t5+t6;
-                        t9=t7+t10;
+                    t12=t5+t6;
+                    t9=t7+t10;
 
-                        z[2*j+2]=t12;
-                        z[2*j+3]=t8;
+                    z[2*j+2]=t12;
+                    z[2*j+3]=t8;
 
-                        z[2*j+6]=t11;
-                        z[2*j+7]=t9;
-                    }
-                } else {
-                    for(j=0; j<siz; j+=4) {
-                        ia=(p0+4*fft2_bigpermute[j  ])&mask;
-                        ib=(p0+4*fft2_bigpermute[j+1])&mask;
-                        ic=(p0+4*fft2_bigpermute[j+2])&mask;
-                        id=(p0+4*fft2_bigpermute[j+3])&mask;
-
-                        t1=(float)(timf2_shi[ia  ])+(float)(timf2_shi[ib  ])+
-                           (float)(timf2_shi[ia+2])+(float)(timf2_shi[ib+2]);
-                        t2=-((float)(timf2_shi[ia+1])+(float)(timf2_shi[ib+1])+
-                             (float)(timf2_shi[ia+3])+(float)(timf2_shi[ib+3]));
-
-                        t3=(float)(timf2_shi[ic  ])+(float)(timf2_shi[id  ])+
-                           (float)(timf2_shi[ic+2])+(float)(timf2_shi[id+2]);
-                        t4=-((float)(timf2_shi[ic+1])+(float)(timf2_shi[id+1])+
-                             (float)(timf2_shi[ic+3])+(float)(timf2_shi[id+3]));
-
-                        t5=(float)(timf2_shi[ia  ])-(float)(timf2_shi[ib  ])+
-                           (float)(timf2_shi[ia+2])-(float)(timf2_shi[ib+2]);
-                        t7=-((float)(timf2_shi[ia+1])-(float)(timf2_shi[ib+1])+
-                             (float)(timf2_shi[ia+3])-(float)(timf2_shi[ib+3]));
-
-                        t10=(float)(timf2_shi[ic  ])-(float)(timf2_shi[id  ])+
-                            (float)(timf2_shi[ic+2])-(float)(timf2_shi[id+2]);
-                        t6= -((float)(timf2_shi[ic+1])-(float)(timf2_shi[id+1])+
-                              (float)(timf2_shi[ic+3])-(float)(timf2_shi[id+3]));
-
-                        z[2*j  ]=t1+t3;
-                        z[2*j+1]=t2+t4;
-
-                        z[2*j+4]=t1-t3;
-                        z[2*j+5]=t2-t4;
-
-                        t11=t5-t6;
-                        t8=t7-t10;
-
-                        t12=t5+t6;
-                        t9=t7+t10;
-
-                        z[2*j+2]=t12;
-                        z[2*j+3]=t8;
-
-                        z[2*j+6]=t11;
-                        z[2*j+7]=t9;
-                    }
+                    z[2*j+6]=t11;
+                    z[2*j+7]=t9;
                 }
             } else {
-                if(swfloat) {
-                    for(j=0; j<siz; j+=4) {
-                        ja=fft2_bigpermute[j  ];
-                        jb=fft2_bigpermute[j+1];
-                        jc=fft2_bigpermute[j+2];
-                        jd=fft2_bigpermute[j+3];
-                        ia=(p0+4*ja)&mask;
-                        ib=(p0+4*jb)&mask;
-                        ic=(p0+4*jc)&mask;
-                        id=(p0+4*jd)&mask;
-                        a1=fft2_window[ja]*(timf2_float[ia  ]+timf2_float[ia+2]);
-                        a2=fft2_window[ja]*(timf2_float[ia+1]+timf2_float[ia+3]);
+                for(j=0; j<siz; j+=4) {
+                    ja=fft2_bigpermute[j  ];
+                    jb=fft2_bigpermute[j+1];
+                    jc=fft2_bigpermute[j+2];
+                    jd=fft2_bigpermute[j+3];
+                    ia=(p0+4*ja)&mask;
+                    ib=(p0+4*jb)&mask;
+                    ic=(p0+4*jc)&mask;
+                    id=(p0+4*jd)&mask;
+                    a1=fft2_window[ja]*(timf2_float[ia  ]+timf2_float[ia+2]);
+                    a2=fft2_window[ja]*(timf2_float[ia+1]+timf2_float[ia+3]);
 
-                        b1=fft2_window[jb]*(timf2_float[ib  ]+timf2_float[ib+2]);
-                        b2=fft2_window[jb]*(timf2_float[ib+1]+timf2_float[ib+3]);
+                    b1=fft2_window[jb]*(timf2_float[ib  ]+timf2_float[ib+2]);
+                    b2=fft2_window[jb]*(timf2_float[ib+1]+timf2_float[ib+3]);
 
-                        c1=fft2_window[jc]*(timf2_float[ic  ]+timf2_float[ic+2]);
-                        c2=fft2_window[jc]*(timf2_float[ic+1]+timf2_float[ic+3]);
+                    c1=fft2_window[jc]*(timf2_float[ic  ]+timf2_float[ic+2]);
+                    c2=fft2_window[jc]*(timf2_float[ic+1]+timf2_float[ic+3]);
 
-                        d1=fft2_window[jd]*(timf2_float[id  ]+timf2_float[id+2]);
-                        d2=fft2_window[jd]*(timf2_float[id+1]+timf2_float[id+3]);
+                    d1=fft2_window[jd]*(timf2_float[id  ]+timf2_float[id+2]);
+                    d2=fft2_window[jd]*(timf2_float[id+1]+timf2_float[id+3]);
 
-                        t1=a1+b1;
-                        t2=-(a2+b2);
+                    t1=a1+b1;
+                    t2=-(a2+b2);
 
-                        t3=c1+d1;
-                        t4=-(c2+d2);
+                    t3=c1+d1;
+                    t4=-(c2+d2);
 
-                        t5=a1-b1;
-                        t7=-(a2-b2);
+                    t5=a1-b1;
+                    t7=-(a2-b2);
 
-                        t10=c1-d1;
-                        t6=-( c2-d2);
-                        z[2*j  ]=t1+t3;
-                        z[2*j+1]=t2+t4;
+                    t10=c1-d1;
+                    t6=-( c2-d2);
+                    z[2*j  ]=t1+t3;
+                    z[2*j+1]=t2+t4;
 
-                        z[2*j+4]=t1-t3;
-                        z[2*j+5]=t2-t4;
+                    z[2*j+4]=t1-t3;
+                    z[2*j+5]=t2-t4;
 
-                        t11=t5-t6;
-                        t8=t7-t10;
+                    t11=t5-t6;
+                    t8=t7-t10;
 
-                        t12=t5+t6;
-                        t9=t7+t10;
+                    t12=t5+t6;
+                    t9=t7+t10;
 
-                        z[2*j+2]=t12;
-                        z[2*j+3]=t8;
+                    z[2*j+2]=t12;
+                    z[2*j+3]=t8;
 
-                        z[2*j+6]=t11;
-                        z[2*j+7]=t9;
-                    }
-                } else {
-                    for(j=0; j<siz; j+=4) {
-                        ja=fft2_bigpermute[j  ];
-                        jb=fft2_bigpermute[j+1];
-                        jc=fft2_bigpermute[j+2];
-                        jd=fft2_bigpermute[j+3];
-                        ia=(p0+4*ja)&mask;
-                        ib=(p0+4*jb)&mask;
-                        ic=(p0+4*jc)&mask;
-                        id=(p0+4*jd)&mask;
-                        a1=fft2_window[ja]*((float)(timf2_shi[ia  ])+(float)(timf2_shi[ia+2]));
-                        a2=fft2_window[ja]*((float)(timf2_shi[ia+1])+(float)(timf2_shi[ia+3]));
-
-                        b1=fft2_window[jb]*((float)(timf2_shi[ib  ])+(float)(timf2_shi[ib+2]));
-                        b2=fft2_window[jb]*((float)(timf2_shi[ib+1])+(float)(timf2_shi[ib+3]));
-
-                        c1=fft2_window[jc]*((float)(timf2_shi[ic  ])+(float)(timf2_shi[ic+2]));
-                        c2=fft2_window[jc]*((float)(timf2_shi[ic+1])+(float)(timf2_shi[ic+3]));
-
-                        d1=fft2_window[jd]*((float)(timf2_shi[id  ])+(float)(timf2_shi[id+2]));
-                        d2=fft2_window[jd]*((float)(timf2_shi[id+1])+(float)(timf2_shi[id+3]));
-
-                        t1=a1+b1;
-                        t2=-(a2+b2);
-
-                        t3=c1+d1;
-                        t4=-(c2+d2);
-
-                        t5=a1-b1;
-                        t7=-(a2-b2);
-
-                        t10=c1-d1;
-                        t6=-( c2-d2);
-                        z[2*j  ]=t1+t3;
-                        z[2*j+1]=t2+t4;
-
-                        z[2*j+4]=t1-t3;
-                        z[2*j+5]=t2-t4;
-
-                        t11=t5-t6;
-                        t8=t7-t10;
-
-                        t12=t5+t6;
-                        t9=t7+t10;
-
-                        z[2*j+2]=t12;
-                        z[2*j+3]=t8;
-
-                        z[2*j+6]=t11;
-                        z[2*j+7]=t9;
-                    }
+                    z[2*j+6]=t11;
+                    z[2*j+7]=t9;
                 }
             }
             return;
 
         case FFT2_MMXB:
-#if CPU == CPU_INTEL
-            n1=fft2_chunk_counter;
-            n2=n1+fft2_chunk_n;
-            if(n2 >= fft2_n-2) {
-                n2=fft2_n-2;
-                make_fft2_status=FFT2_MMXC;
-            }
-            fft2_chunk_counter=n2;
-            for(n=n1; n<n2; n+=2) {
-                if(n < fft2_att_limit) {
-                    fft2_mmx_b1hi();
-                } else {
-                    if(n == fft2_att_limit) {
-                        fft2_mmx_b1med();
-                    } else {
-                        fft2_mmx_b1low();
-                    }
-                }
-            }
-#else
-            lirerr(995346);
-
-#endif
-            return;
-
         case FFT2_MMXC:
-#if CPU == CPU_INTEL
-            fft2_mmx_c1();
-            if(no_of_spurs > 0) {
-                fftx_na=fft2_na;
-                eliminate_spurs();
-            }
-// Make summed power spectrum.
-            zxy=&fft2_short_int[fft2_pa];
-            pwra=&fft2_power_float[fft2_na*siz];
-            if(ampinfo_flag != 0) {
-                for(i=0; i<siz; i++) {
-                    k=zxy[2*i  ];
-                    k=abs(k);
-                    if(k > fft2_maxamp[0])fft2_maxamp[0]=k;
-                    k=zxy[2*i+1];
-                    k=abs(k);
-                    if(k > fft2_maxamp[0])fft2_maxamp[0]=k;
-                }
-            }
-            if(wg_waterf_sum_counter == 0) {
-                for(i=0; i<siz; i++) {
-                    pwra[i]=(float)(zxy[2*i  ])*(float)(zxy[2*i  ])+
-                            (float)(zxy[2*i+1])*(float)(zxy[2*i+1]);
-                    fft2_powersum_float[i]=pwra[i];
-                }
-            } else {
-                for(i=0; i<siz; i++) {
-                    pwra[i]=(float)(zxy[2*i  ])*(float)(zxy[2*i  ])+
-                            (float)(zxy[2*i+1])*(float)(zxy[2*i+1]);
-                    fft2_powersum_float[i]+=pwra[i];
-                }
-            }
-#else
-            pwra=NULL;
-            lirerr(995347);
-#endif
-            goto one_finish;
+            lirerr(995346);
+            return;
 
         case FFT2_B:
             siz_d4=siz/4;
@@ -605,8 +403,6 @@ lp3:
                     fft2_powersum_float[i]+=pwra[i];
                 }
             }
-one_finish:
-            ;
             wg_waterf_sum_counter++;
             if(genparm[MAX_NO_OF_SPURS] > 0) {
                 if(spursearch_sum_counter > 3*spur_speknum) {
@@ -740,32 +536,16 @@ one_finish:
                 for(j=0; j<mm; j+=2) {
                     p0=timf2_px;
                     if(genparm[SECOND_FFT_SINPOW] != 0) {
-                        if(swfloat) {
-                            for(i=0; i<siz; i++) {
-                                fftxy[2*i  ]=fft2_window[i]*(timf2_float[p0+j  ]+timf2_float[p0+j+4]);
-                                fftxy[2*i+1]=fft2_window[i]*(timf2_float[p0+j+1]+timf2_float[p0+j+5]);
-                                p0=(p0+8)&mask;
-                            }
-                        } else {
-                            for(i=0; i<siz; i++) {
-                                fftxy[2*i  ]=fft2_window[i]*(timf2_shi[p0+j  ]+timf2_shi[p0+j+4]);
-                                fftxy[2*i+1]=fft2_window[i]*(timf2_shi[p0+j+1]+timf2_shi[p0+j+5]);
-                                p0=(p0+8)&mask;
-                            }
+                        for(i=0; i<siz; i++) {
+                            fftxy[2*i  ]=fft2_window[i]*(timf2_float[p0+j  ]+timf2_float[p0+j+4]);
+                            fftxy[2*i+1]=fft2_window[i]*(timf2_float[p0+j+1]+timf2_float[p0+j+5]);
+                            p0=(p0+8)&mask;
                         }
                     } else {
-                        if(swfloat) {
-                            for(i=0; i<siz; i++) {
-                                fftxy[2*i  ]=timf2_float[p0+j  ]+timf2_float[p0+j+4];
-                                fftxy[2*i+1]=timf2_float[p0+j+1]+timf2_float[p0+j+5];
-                                p0=(p0+8)&mask;
-                            }
-                        } else {
-                            for(i=0; i<siz; i++) {
-                                fftxy[2*i  ]=timf2_shi[p0+j  ]+timf2_shi[p0+j+4];
-                                fftxy[2*i+1]=timf2_shi[p0+j+1]+timf2_shi[p0+j+5];
-                                p0=(p0+8)&mask;
-                            }
+                        for(i=0; i<siz; i++) {
+                            fftxy[2*i  ]=timf2_float[p0+j  ]+timf2_float[p0+j+4];
+                            fftxy[2*i+1]=timf2_float[p0+j+1]+timf2_float[p0+j+5];
+                            p0=(p0+8)&mask;
                         }
                     }
                     big_fftforward(siz, fft2_n, fftxy,
@@ -791,15 +571,7 @@ one_finish:
                 make_fft2_status=FFT2_B;
             } else {
 // Use MMX routines
-#if CPU == CPU_INTEL
-                if(genparm[SECOND_FFT_SINPOW] == 0) {
-                    fft2mmx_a2_nowin();
-                } else {
-                    fft2mmx_a2_win();
-                }
-#else
                 lirerr(995348);
-#endif
                 make_fft2_status=FFT2_MMXB;
                 return;
             }
@@ -807,406 +579,165 @@ one_finish:
             p0=timf2_px;
 
             if(genparm[SECOND_FFT_SINPOW] == 0) {
-                if(swfloat) {
-                    for(j=0; j<siz; j+=4) {
-                        ia=(p0+8*fft2_bigpermute[j  ])&mask;
-                        ib=(p0+8*fft2_bigpermute[j+1])&mask;
-                        ic=(p0+8*fft2_bigpermute[j+2])&mask;
-                        id=(p0+8*fft2_bigpermute[j+3])&mask;
+                for(j=0; j<siz; j+=4) {
+                    ia=(p0+8*fft2_bigpermute[j  ])&mask;
+                    ib=(p0+8*fft2_bigpermute[j+1])&mask;
+                    ic=(p0+8*fft2_bigpermute[j+2])&mask;
+                    id=(p0+8*fft2_bigpermute[j+3])&mask;
 
-                        t1=  timf2_float[ia  ]+timf2_float[ib  ]+
-                             timf2_float[ia+4]+timf2_float[ib+4];
-                        t2=-(timf2_float[ia+1]+timf2_float[ib+1]+
-                             timf2_float[ia+5]+timf2_float[ib+5]);
-                        r1=  timf2_float[ia+2]+timf2_float[ib+2]+
-                             timf2_float[ia+6]+timf2_float[ib+6];
-                        r2=-(timf2_float[ia+3]+timf2_float[ib+3]+
-                             timf2_float[ia+7]+timf2_float[ib+7]);
+                    t1=  timf2_float[ia  ]+timf2_float[ib  ]+
+                         timf2_float[ia+4]+timf2_float[ib+4];
+                    t2=-(timf2_float[ia+1]+timf2_float[ib+1]+
+                         timf2_float[ia+5]+timf2_float[ib+5]);
+                    r1=  timf2_float[ia+2]+timf2_float[ib+2]+
+                         timf2_float[ia+6]+timf2_float[ib+6];
+                    r2=-(timf2_float[ia+3]+timf2_float[ib+3]+
+                         timf2_float[ia+7]+timf2_float[ib+7]);
 
-                        t3=  timf2_float[ic  ]+timf2_float[id  ]+
-                             timf2_float[ic+4]+timf2_float[id+4];
-                        t4=-(timf2_float[ic+1]+timf2_float[id+1]+
-                             timf2_float[ic+5]+timf2_float[id+5]);
-                        r3=  timf2_float[ic+2]+timf2_float[id+2]+
-                             timf2_float[ic+6]+timf2_float[id+6];
-                        r4=-(timf2_float[ic+3]+timf2_float[id+3]+
-                             timf2_float[ic+7]+timf2_float[id+7]);
+                    t3=  timf2_float[ic  ]+timf2_float[id  ]+
+                         timf2_float[ic+4]+timf2_float[id+4];
+                    t4=-(timf2_float[ic+1]+timf2_float[id+1]+
+                         timf2_float[ic+5]+timf2_float[id+5]);
+                    r3=  timf2_float[ic+2]+timf2_float[id+2]+
+                         timf2_float[ic+6]+timf2_float[id+6];
+                    r4=-(timf2_float[ic+3]+timf2_float[id+3]+
+                         timf2_float[ic+7]+timf2_float[id+7]);
 
-                        t5=(float)(timf2_float[ia  ])-(float)(timf2_float[ib  ])+
-                           (float)(timf2_float[ia+4])-(float)(timf2_float[ib+4]);
-                        t7=-((float)(timf2_float[ia+1])-(float)(timf2_float[ib+1])+
-                             (float)(timf2_float[ia+5])-(float)(timf2_float[ib+5]));
-                        r5=(float)(timf2_float[ia+2])-(float)(timf2_float[ib+2])+
-                           (float)(timf2_float[ia+6])-(float)(timf2_float[ib+6]);
-                        r7=-((float)(timf2_float[ia+3])-(float)(timf2_float[ib+3])+
-                             (float)(timf2_float[ia+7])-(float)(timf2_float[ib+7]));
+                    t5=(float)(timf2_float[ia  ])-(float)(timf2_float[ib  ])+
+                       (float)(timf2_float[ia+4])-(float)(timf2_float[ib+4]);
+                    t7=-((float)(timf2_float[ia+1])-(float)(timf2_float[ib+1])+
+                         (float)(timf2_float[ia+5])-(float)(timf2_float[ib+5]));
+                    r5=(float)(timf2_float[ia+2])-(float)(timf2_float[ib+2])+
+                       (float)(timf2_float[ia+6])-(float)(timf2_float[ib+6]);
+                    r7=-((float)(timf2_float[ia+3])-(float)(timf2_float[ib+3])+
+                         (float)(timf2_float[ia+7])-(float)(timf2_float[ib+7]));
 
-                        t10=(float)(timf2_float[ic  ])-(float)(timf2_float[id  ])+
-                            (float)(timf2_float[ic+4])-(float)(timf2_float[id+4]);
-                        t6= -((float)(timf2_float[ic+1])-(float)(timf2_float[id+1])+
-                              (float)(timf2_float[ic+5])-(float)(timf2_float[id+5]));
-                        r10=(float)(timf2_float[ic+2])-(float)(timf2_float[id+2])+
-                            (float)(timf2_float[ic+6])-(float)(timf2_float[id+6]);
-                        r6= -((float)(timf2_float[ic+3])-(float)(timf2_float[id+3])+
-                              (float)(timf2_float[ic+7])-(float)(timf2_float[id+7]));
+                    t10=(float)(timf2_float[ic  ])-(float)(timf2_float[id  ])+
+                        (float)(timf2_float[ic+4])-(float)(timf2_float[id+4]);
+                    t6= -((float)(timf2_float[ic+1])-(float)(timf2_float[id+1])+
+                          (float)(timf2_float[ic+5])-(float)(timf2_float[id+5]));
+                    r10=(float)(timf2_float[ic+2])-(float)(timf2_float[id+2])+
+                        (float)(timf2_float[ic+6])-(float)(timf2_float[id+6]);
+                    r6= -((float)(timf2_float[ic+3])-(float)(timf2_float[id+3])+
+                          (float)(timf2_float[ic+7])-(float)(timf2_float[id+7]));
 
-                        fftxy[4*j  ]=t1+t3;
-                        fftxy[4*j+1]=(t2+t4);
-                        fftxy[4*j+2]=r1+r3;
-                        fftxy[4*j+3]=(r2+r4);
+                    fftxy[4*j  ]=t1+t3;
+                    fftxy[4*j+1]=(t2+t4);
+                    fftxy[4*j+2]=r1+r3;
+                    fftxy[4*j+3]=(r2+r4);
 
-                        fftxy[4*j+8]=t1-t3;
-                        fftxy[4*j+9]=(t2-t4);
-                        fftxy[4*j+10]=r1-r3;
-                        fftxy[4*j+11]=(r2-r4);
+                    fftxy[4*j+8]=t1-t3;
+                    fftxy[4*j+9]=(t2-t4);
+                    fftxy[4*j+10]=r1-r3;
+                    fftxy[4*j+11]=(r2-r4);
 
-                        t11=t5-t6;
-                        t8=t7-t10;
-                        r11=r5-r6;
-                        r8=r7-r10;
+                    t11=t5-t6;
+                    t8=t7-t10;
+                    r11=r5-r6;
+                    r8=r7-r10;
 
-                        t12=t5+t6;
-                        t9=t7+t10;
-                        r12=r5+r6;
-                        r9=r7+r10;
+                    t12=t5+t6;
+                    t9=t7+t10;
+                    r12=r5+r6;
+                    r9=r7+r10;
 
-                        fftxy[4*j+4]=t12;
-                        fftxy[4*j+5]=t8;
-                        fftxy[4*j+6]=r12;
-                        fftxy[4*j+7]=r8;
+                    fftxy[4*j+4]=t12;
+                    fftxy[4*j+5]=t8;
+                    fftxy[4*j+6]=r12;
+                    fftxy[4*j+7]=r8;
 
-                        fftxy[4*j+12]=t11;
-                        fftxy[4*j+13]=t9;
-                        fftxy[4*j+14]=r11;
-                        fftxy[4*j+15]=r9;
-                    }
-                } else {
-                    for(j=0; j<siz; j+=4) {
-                        ia=(p0+8*fft2_bigpermute[j  ])&mask;
-                        ib=(p0+8*fft2_bigpermute[j+1])&mask;
-                        ic=(p0+8*fft2_bigpermute[j+2])&mask;
-                        id=(p0+8*fft2_bigpermute[j+3])&mask;
-
-                        t1=(float)(timf2_shi[ia  ])+(float)(timf2_shi[ib  ])+
-                           (float)(timf2_shi[ia+4])+(float)(timf2_shi[ib+4]);
-                        t2=-((float)(timf2_shi[ia+1])+(float)(timf2_shi[ib+1])+
-                             (float)(timf2_shi[ia+5])+(float)(timf2_shi[ib+5]));
-                        r1=(float)(timf2_shi[ia+2])+(float)(timf2_shi[ib+2])+
-                           (float)(timf2_shi[ia+6])+(float)(timf2_shi[ib+6]);
-                        r2=-((float)(timf2_shi[ia+3])+(float)(timf2_shi[ib+3])+
-                             (float)(timf2_shi[ia+7])+(float)(timf2_shi[ib+7]));
-
-                        t3=(float)(timf2_shi[ic  ])+(float)(timf2_shi[id  ])+
-                           (float)(timf2_shi[ic+4])+(float)(timf2_shi[id+4]);
-                        t4=-((float)(timf2_shi[ic+1])+(float)(timf2_shi[id+1])+
-                             (float)(timf2_shi[ic+5])+(float)(timf2_shi[id+5]));
-                        r3=(float)(timf2_shi[ic+2])+(float)(timf2_shi[id+2])+
-                           (float)(timf2_shi[ic+6])+(float)(timf2_shi[id+6]);
-                        r4=-((float)(timf2_shi[ic+3])+(float)(timf2_shi[id+3])+
-                             (float)(timf2_shi[ic+7])+(float)(timf2_shi[id+7]));
-
-                        t5=(float)(timf2_shi[ia  ])-(float)(timf2_shi[ib  ])+
-                           (float)(timf2_shi[ia+4])-(float)(timf2_shi[ib+4]);
-                        t7=-((float)(timf2_shi[ia+1])-(float)(timf2_shi[ib+1])+
-                             (float)(timf2_shi[ia+5])-(float)(timf2_shi[ib+5]));
-                        r5=(float)(timf2_shi[ia+2])-(float)(timf2_shi[ib+2])+
-                           (float)(timf2_shi[ia+6])-(float)(timf2_shi[ib+6]);
-                        r7=-((float)(timf2_shi[ia+3])-(float)(timf2_shi[ib+3])+
-                             (float)(timf2_shi[ia+7])-(float)(timf2_shi[ib+7]));
-
-                        t10=(float)(timf2_shi[ic  ])-(float)(timf2_shi[id  ])+
-                            (float)(timf2_shi[ic+4])-(float)(timf2_shi[id+4]);
-                        t6= -((float)(timf2_shi[ic+1])-(float)(timf2_shi[id+1])+
-                              (float)(timf2_shi[ic+5])-(float)(timf2_shi[id+5]));
-                        r10=(float)(timf2_shi[ic+2])-(float)(timf2_shi[id+2])+
-                            (float)(timf2_shi[ic+6])-(float)(timf2_shi[id+6]);
-                        r6= -((float)(timf2_shi[ic+3])-(float)(timf2_shi[id+3])+
-                              (float)(timf2_shi[ic+7])-(float)(timf2_shi[id+7]));
-
-                        fftxy[4*j  ]=t1+t3;
-                        fftxy[4*j+1]=(t2+t4);
-                        fftxy[4*j+2]=r1+r3;
-                        fftxy[4*j+3]=(r2+r4);
-
-                        fftxy[4*j+8]=t1-t3;
-                        fftxy[4*j+9]=(t2-t4);
-                        fftxy[4*j+10]=r1-r3;
-                        fftxy[4*j+11]=(r2-r4);
-
-                        t11=t5-t6;
-                        t8=t7-t10;
-                        r11=r5-r6;
-                        r8=r7-r10;
-
-                        t12=t5+t6;
-                        t9=t7+t10;
-                        r12=r5+r6;
-                        r9=r7+r10;
-
-                        fftxy[4*j+4]=t12;
-                        fftxy[4*j+5]=t8;
-                        fftxy[4*j+6]=r12;
-                        fftxy[4*j+7]=r8;
-
-                        fftxy[4*j+12]=t11;
-                        fftxy[4*j+13]=t9;
-                        fftxy[4*j+14]=r11;
-                        fftxy[4*j+15]=r9;
-                    }
+                    fftxy[4*j+12]=t11;
+                    fftxy[4*j+13]=t9;
+                    fftxy[4*j+14]=r11;
+                    fftxy[4*j+15]=r9;
                 }
             } else {
-                if(swfloat) {
-                    for(j=0; j<siz; j+=4) {
-                        ja=fft2_bigpermute[j  ];
-                        jb=fft2_bigpermute[j+1];
-                        jc=fft2_bigpermute[j+2];
-                        jd=fft2_bigpermute[j+3];
-                        ia=(p0+8*ja)&mask;
-                        ib=(p0+8*jb)&mask;
-                        ic=(p0+8*jc)&mask;
-                        id=(p0+8*jd)&mask;
-                        a1=fft2_window[ja]*(timf2_float[ia  ]+timf2_float[ia+4]);
-                        a2=fft2_window[ja]*(timf2_float[ia+1]+timf2_float[ia+5]);
-                        a3=fft2_window[ja]*(timf2_float[ia+2]+timf2_float[ia+6]);
-                        a4=fft2_window[ja]*(timf2_float[ia+3]+timf2_float[ia+7]);
+                for(j=0; j<siz; j+=4) {
+                    ja=fft2_bigpermute[j  ];
+                    jb=fft2_bigpermute[j+1];
+                    jc=fft2_bigpermute[j+2];
+                    jd=fft2_bigpermute[j+3];
+                    ia=(p0+8*ja)&mask;
+                    ib=(p0+8*jb)&mask;
+                    ic=(p0+8*jc)&mask;
+                    id=(p0+8*jd)&mask;
+                    a1=fft2_window[ja]*(timf2_float[ia  ]+timf2_float[ia+4]);
+                    a2=fft2_window[ja]*(timf2_float[ia+1]+timf2_float[ia+5]);
+                    a3=fft2_window[ja]*(timf2_float[ia+2]+timf2_float[ia+6]);
+                    a4=fft2_window[ja]*(timf2_float[ia+3]+timf2_float[ia+7]);
 
-                        b1=fft2_window[jb]*(timf2_float[ib  ]+timf2_float[ib+4]);
-                        b2=fft2_window[jb]*(timf2_float[ib+1]+timf2_float[ib+5]);
-                        b3=fft2_window[jb]*(timf2_float[ib+2]+timf2_float[ib+6]);
-                        b4=fft2_window[jb]*(timf2_float[ib+3]+timf2_float[ib+7]);
+                    b1=fft2_window[jb]*(timf2_float[ib  ]+timf2_float[ib+4]);
+                    b2=fft2_window[jb]*(timf2_float[ib+1]+timf2_float[ib+5]);
+                    b3=fft2_window[jb]*(timf2_float[ib+2]+timf2_float[ib+6]);
+                    b4=fft2_window[jb]*(timf2_float[ib+3]+timf2_float[ib+7]);
 
-                        c1=fft2_window[jc]*(timf2_float[ic  ]+timf2_float[ic+4]);
-                        c2=fft2_window[jc]*(timf2_float[ic+1]+timf2_float[ic+5]);
-                        c3=fft2_window[jc]*(timf2_float[ic+2]+timf2_float[ic+6]);
-                        c4=fft2_window[jc]*(timf2_float[ic+3]+timf2_float[ic+7]);
+                    c1=fft2_window[jc]*(timf2_float[ic  ]+timf2_float[ic+4]);
+                    c2=fft2_window[jc]*(timf2_float[ic+1]+timf2_float[ic+5]);
+                    c3=fft2_window[jc]*(timf2_float[ic+2]+timf2_float[ic+6]);
+                    c4=fft2_window[jc]*(timf2_float[ic+3]+timf2_float[ic+7]);
 
-                        d1=fft2_window[jd]*(timf2_float[id  ]+timf2_float[id+4]);
-                        d2=fft2_window[jd]*(timf2_float[id+1]+timf2_float[id+5]);
-                        d3=fft2_window[jd]*(timf2_float[id+2]+timf2_float[id+6]);
-                        d4=fft2_window[jd]*(timf2_float[id+3]+timf2_float[id+7]);
+                    d1=fft2_window[jd]*(timf2_float[id  ]+timf2_float[id+4]);
+                    d2=fft2_window[jd]*(timf2_float[id+1]+timf2_float[id+5]);
+                    d3=fft2_window[jd]*(timf2_float[id+2]+timf2_float[id+6]);
+                    d4=fft2_window[jd]*(timf2_float[id+3]+timf2_float[id+7]);
 
-                        t1=a1+b1;
-                        t2=-(a2+b2);
-                        r1=a3+b3;
-                        r2=-(a4+b4);
+                    t1=a1+b1;
+                    t2=-(a2+b2);
+                    r1=a3+b3;
+                    r2=-(a4+b4);
 
-                        t3=c1+d1;
-                        t4=-(c2+d2);
-                        r3=c3+d3;
-                        r4=-(c4+d4);
+                    t3=c1+d1;
+                    t4=-(c2+d2);
+                    r3=c3+d3;
+                    r4=-(c4+d4);
 
-                        t5=a1-b1;
-                        t7=-(a2-b2);
-                        r5=a3-b3;
-                        r7=-(a4-b4);
+                    t5=a1-b1;
+                    t7=-(a2-b2);
+                    r5=a3-b3;
+                    r7=-(a4-b4);
 
-                        t10=c1-d1;
-                        t6=-( c2-d2);
-                        r10=c3-d3;
-                        r6=-( c4-d4);
+                    t10=c1-d1;
+                    t6=-( c2-d2);
+                    r10=c3-d3;
+                    r6=-( c4-d4);
 
-                        fftxy[4*j  ]=t1+t3;
-                        fftxy[4*j+1]=t2+t4;
-                        fftxy[4*j+2]=r1+r3;
-                        fftxy[4*j+3]=r2+r4;
+                    fftxy[4*j  ]=t1+t3;
+                    fftxy[4*j+1]=t2+t4;
+                    fftxy[4*j+2]=r1+r3;
+                    fftxy[4*j+3]=r2+r4;
 
-                        fftxy[4*j+8]=t1-t3;
-                        fftxy[4*j+9]=t2-t4;
-                        fftxy[4*j+10]=r1-r3;
-                        fftxy[4*j+11]=r2-r4;
+                    fftxy[4*j+8]=t1-t3;
+                    fftxy[4*j+9]=t2-t4;
+                    fftxy[4*j+10]=r1-r3;
+                    fftxy[4*j+11]=r2-r4;
 
-                        t11=t5-t6;
-                        t8=t7-t10;
-                        r11=r5-r6;
-                        r8=r7-r10;
+                    t11=t5-t6;
+                    t8=t7-t10;
+                    r11=r5-r6;
+                    r8=r7-r10;
 
-                        t12=t5+t6;
-                        t9=t7+t10;
-                        r12=r5+r6;
-                        r9=r7+r10;
+                    t12=t5+t6;
+                    t9=t7+t10;
+                    r12=r5+r6;
+                    r9=r7+r10;
 
-                        fftxy[4*j+4]=t12;
-                        fftxy[4*j+5]=t8;
-                        fftxy[4*j+6]=r12;
-                        fftxy[4*j+7]=r8;
+                    fftxy[4*j+4]=t12;
+                    fftxy[4*j+5]=t8;
+                    fftxy[4*j+6]=r12;
+                    fftxy[4*j+7]=r8;
 
-                        fftxy[4*j+12]=t11;
-                        fftxy[4*j+13]=t9;
-                        fftxy[4*j+14]=r11;
-                        fftxy[4*j+15]=r9;
-                    }
-                } else {
-                    for(j=0; j<siz; j+=4) {
-                        ja=fft2_bigpermute[j  ];
-                        jb=fft2_bigpermute[j+1];
-                        jc=fft2_bigpermute[j+2];
-                        jd=fft2_bigpermute[j+3];
-                        ia=(p0+8*ja)&mask;
-                        ib=(p0+8*jb)&mask;
-                        ic=(p0+8*jc)&mask;
-                        id=(p0+8*jd)&mask;
-                        a1=fft2_window[ja]*((float)(timf2_shi[ia  ])+(float)(timf2_shi[ia+4]));
-                        a2=fft2_window[ja]*((float)(timf2_shi[ia+1])+(float)(timf2_shi[ia+5]));
-                        a3=fft2_window[ja]*((float)(timf2_shi[ia+2])+(float)(timf2_shi[ia+6]));
-                        a4=fft2_window[ja]*((float)(timf2_shi[ia+3])+(float)(timf2_shi[ia+7]));
-
-                        b1=fft2_window[jb]*((float)(timf2_shi[ib  ])+(float)(timf2_shi[ib+4]));
-                        b2=fft2_window[jb]*((float)(timf2_shi[ib+1])+(float)(timf2_shi[ib+5]));
-                        b3=fft2_window[jb]*((float)(timf2_shi[ib+2])+(float)(timf2_shi[ib+6]));
-                        b4=fft2_window[jb]*((float)(timf2_shi[ib+3])+(float)(timf2_shi[ib+7]));
-
-                        c1=fft2_window[jc]*((float)(timf2_shi[ic  ])+(float)(timf2_shi[ic+4]));
-                        c2=fft2_window[jc]*((float)(timf2_shi[ic+1])+(float)(timf2_shi[ic+5]));
-                        c3=fft2_window[jc]*((float)(timf2_shi[ic+2])+(float)(timf2_shi[ic+6]));
-                        c4=fft2_window[jc]*((float)(timf2_shi[ic+3])+(float)(timf2_shi[ic+7]));
-
-                        d1=fft2_window[jd]*((float)(timf2_shi[id  ])+(float)(timf2_shi[id+4]));
-                        d2=fft2_window[jd]*((float)(timf2_shi[id+1])+(float)(timf2_shi[id+5]));
-                        d3=fft2_window[jd]*((float)(timf2_shi[id+2])+(float)(timf2_shi[id+6]));
-                        d4=fft2_window[jd]*((float)(timf2_shi[id+3])+(float)(timf2_shi[id+7]));
-
-                        t1=a1+b1;
-                        t2=-(a2+b2);
-                        r1=a3+b3;
-                        r2=-(a4+b4);
-
-                        t3=c1+d1;
-                        t4=-(c2+d2);
-                        r3=c3+d3;
-                        r4=-(c4+d4);
-
-                        t5=a1-b1;
-                        t7=-(a2-b2);
-                        r5=a3-b3;
-                        r7=-(a4-b4);
-
-                        t10=c1-d1;
-                        t6=-( c2-d2);
-                        r10=c3-d3;
-                        r6=-( c4-d4);
-
-                        fftxy[4*j  ]=t1+t3;
-                        fftxy[4*j+1]=t2+t4;
-                        fftxy[4*j+2]=r1+r3;
-                        fftxy[4*j+3]=r2+r4;
-
-                        fftxy[4*j+8]=t1-t3;
-                        fftxy[4*j+9]=t2-t4;
-                        fftxy[4*j+10]=r1-r3;
-                        fftxy[4*j+11]=r2-r4;
-
-                        t11=t5-t6;
-                        t8=t7-t10;
-                        r11=r5-r6;
-                        r8=r7-r10;
-
-                        t12=t5+t6;
-                        t9=t7+t10;
-                        r12=r5+r6;
-                        r9=r7+r10;
-
-                        fftxy[4*j+4]=t12;
-                        fftxy[4*j+5]=t8;
-                        fftxy[4*j+6]=r12;
-                        fftxy[4*j+7]=r8;
-
-                        fftxy[4*j+12]=t11;
-                        fftxy[4*j+13]=t9;
-                        fftxy[4*j+14]=r11;
-                        fftxy[4*j+15]=r9;
-                    }
+                    fftxy[4*j+12]=t11;
+                    fftxy[4*j+13]=t9;
+                    fftxy[4*j+14]=r11;
+                    fftxy[4*j+15]=r9;
                 }
             }
             return;
 
         case FFT2_MMXB:
-#if CPU == CPU_INTEL
-            n1=fft2_chunk_counter;
-            n2=n1+fft2_chunk_n;
-            if(n2 >= fft2_n-2) {
-                n2=fft2_n-2;
-                make_fft2_status=FFT2_MMXC;
-            }
-            fft2_chunk_counter=n2;
-            for(n=n1; n<n2; n+=2) {
-                if(n < fft2_att_limit) {
-                    fft2_mmx_b2hi();
-                } else {
-                    if(n == fft2_att_limit) {
-                        fft2_mmx_b2med();
-                    } else {
-                        fft2_mmx_b2low();
-                    }
-                }
-            }
-#else
-            lirerr(995349);
-#endif
-            return;
-
         case FFT2_MMXC:
-#if CPU == CPU_INTEL
-            fft2_mmx_c2();
-            if(no_of_spurs > 0) {
-                fftx_na=fft2_na;
-                eliminate_spurs();
-            }
-// Make summed power spectrum.
-            zxy=&fft2_short_int[fft2_pa];
-            ya=&fft2_xypower[fft2_na*siz];
-            if(ampinfo_flag != 0) {
-                for(i=0; i<siz; i++) {
-                    k=zxy[4*i  ];
-                    k=abs(k);
-                    if(k > fft2_maxamp[0])fft2_maxamp[0]=k;
-                    k=zxy[4*i+1];
-                    k=abs(k);
-                    if(k > fft2_maxamp[0])fft2_maxamp[0]=k;
-                    k=zxy[4*i+2];
-                    k=abs(k);
-                    if(k > fft2_maxamp[1])fft2_maxamp[1]=k;
-                    k=zxy[4*i+3];
-                    k=abs(k);
-                    if(k > fft2_maxamp[1])fft2_maxamp[1]=k;
-                }
-            }
-// Make summed power spectrum and channel correlations.
-            if(wg_waterf_sum_counter == 0) {
-                for(i=0; i<siz; i++) {
-                    ya[i].x2=(float)(zxy[4*i  ])*(float)(zxy[4*i  ])+
-                             (float)(zxy[4*i+1])*(float)(zxy[4*i+1]);
-                    fft2_xysum[i].x2   =ya[i].x2;
-                    ya[i].y2=(float)(zxy[4*i+2])*(float)(zxy[4*i+2])+
-                             (float)(zxy[4*i+3])*(float)(zxy[4*i+3]);
-                    fft2_xysum[i].y2   =ya[i].y2;
-                    ya[i].im_xy=-(float)(zxy[4*i  ])*(float)(zxy[4*i+3])+
-                                (float)(zxy[4*i+1])*(float)(zxy[4*i+2]);
-                    fft2_xysum[i].im_xy=ya[i].im_xy;
-                    ya[i].re_xy=(float)(zxy[4*i  ])*(float)(zxy[4*i+2])+
-                                (float)(zxy[4*i+1])*(float)(zxy[4*i+3]);
-                    fft2_xysum[i].re_xy=ya[i].re_xy;
-                }
-            } else {
-                for(i=0; i<siz; i++) {
-                    ya[i].x2=(float)(zxy[4*i  ])*(float)(zxy[4*i  ])+
-                             (float)(zxy[4*i+1])*(float)(zxy[4*i+1]);
-                    fft2_xysum[i].x2   +=ya[i].x2;
-                    ya[i].y2=(float)(zxy[4*i+2])*(float)(zxy[4*i+2])+
-                             (float)(zxy[4*i+3])*(float)(zxy[4*i+3]);
-                    fft2_xysum[i].y2   +=ya[i].y2;
-                    ya[i].im_xy=-(float)(zxy[4*i  ])*(float)(zxy[4*i+3])+
-                                (float)(zxy[4*i+1])*(float)(zxy[4*i+2]);
-                    fft2_xysum[i].im_xy+=ya[i].im_xy;
-                    ya[i].re_xy=(float)(zxy[4*i  ])*(float)(zxy[4*i+2])+
-                                (float)(zxy[4*i+1])*(float)(zxy[4*i+3]);
-                    fft2_xysum[i].re_xy+=ya[i].re_xy;
-                }
-            }
-#else
-            ya=NULL;
-            lirerr(995350);
-#endif
-            goto two_finish;
+            lirerr(995349);
+            return;
 
         case FFT2_B:
             siz_d4=siz/4;
@@ -1489,8 +1020,6 @@ lp4:
                     fft2_xysum[i].re_xy+=ya[i].re_xy;
                 }
             }
-two_finish:
-            ;
             wg_waterf_sum_counter++;
             if(genparm[MAX_NO_OF_SPURS] > 0) {
                 if(spursearch_sum_counter > 3*spur_speknum) {

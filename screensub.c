@@ -311,17 +311,6 @@ void show_coherent(void)
     float t2, t4;
     float sellim_correction;
     sellim_correction=1;
-    if(genparm[SECOND_FFT_ENABLE] != 0) {
-        if(!swfloat) {
-            ia=mix1_selfreq[0]*fftx_points_per_hz;
-            if(ia > 0) {
-                ia/=fft2_to_fft1_ratio;
-                if(liminfo[ia]>0) {
-                    sellim_correction=1/pow(liminfo[ia],2.0);
-                }
-            }
-        }
-    }
     hide_mouse(cg_old_x1, cg_old_x2, cg_old_y1, cg_old_y2);
     for(iy=0; iy<cg_size; iy++) {
         n=iy*cg_size;
@@ -1344,9 +1333,6 @@ void make_hg_yscale(void)
     hg_yfac_power=(float)(fft1_new_points)/fft1_size;
     hg_yfac_power=(HG_ZERO*hg_yfac_power)/fft1_size;
     hg_yfac_power/=(fft2_size*hg.spek_avgnum*pow(10.,0.1*db_ref));
-    if(fft_cntrl[FFT2_CURMODE].mmx != 0) {
-        hg_yfac_power*=1<<(2*genparm[SECOND_FFT_ATT_N]);
-    }
     hg_yfac_power*=1<<(2*genparm[FIRST_BCKFFT_ATT_N]);
     hg_yfac_log=10./hg_db_per_pixel;
 // Place a colour scale at the right hand side

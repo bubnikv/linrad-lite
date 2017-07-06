@@ -74,36 +74,20 @@ void compute_timf2_powersum(void)
         timf2_pb=(timf2_pb+timf2_blockpower_block)&timf2_mask;
         t1=0;
         if(sw_onechan) {
-            if( fft_cntrl[FFT1_BCKCURMODE].mmx == 0) {
-                while(i != timf2_pb) {
-                    t1+=timf2_float[i  ]*timf2_float[i  ]+
-                        timf2_float[i+1]*timf2_float[i+1];
-                    i=(i+4)&timf2_mask;
-                }
-            } else {
-                while(i != timf2_pb) {
-                    t1+=(float)timf2_shi[i  ]*(float)timf2_shi[i  ]+
-                        (float)timf2_shi[i+1]*(float)timf2_shi[i+1];
-                }
+            while(i != timf2_pb) {
+                t1+=timf2_float[i  ]*timf2_float[i  ]+
+                    timf2_float[i+1]*timf2_float[i+1];
+                i=(i+4)&timf2_mask;
             }
             timf2_blockpower[timf2_blockpower_pa]=t1;
         } else {
             t2=0;
-            if( fft_cntrl[FFT1_BCKCURMODE].mmx == 0) {
-                while(i != timf2_pb) {
-                    t1+=timf2_float[i  ]*timf2_float[i  ]+
-                        timf2_float[i+1]*timf2_float[i+1];
-                    t2+=timf2_float[i+2]*timf2_float[i+2]+
-                        timf2_float[i+3]*timf2_float[i+3];
-                    i=(i+8)&timf2_mask;
-                }
-            } else {
-                while(i != timf2_pb) {
-                    t1+=(float)timf2_shi[i  ]*(float)timf2_shi[i  ]+
-                        (float)timf2_shi[i+1]*(float)timf2_shi[i+1];
-                    t2+=(float)timf2_shi[i+2]*(float)timf2_shi[i+2]+
-                        (float)timf2_shi[i+3]*(float)timf2_shi[i+3];
-                }
+            while(i != timf2_pb) {
+                t1+=timf2_float[i  ]*timf2_float[i  ]+
+                    timf2_float[i+1]*timf2_float[i+1];
+                t2+=timf2_float[i+2]*timf2_float[i+2]+
+                    timf2_float[i+3]*timf2_float[i+3];
+                i=(i+8)&timf2_mask;
             }
             timf2_blockpower[2*timf2_blockpower_pa  ]=t1;
             timf2_blockpower[2*timf2_blockpower_pa+1]=t2;
